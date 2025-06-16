@@ -1,0 +1,332 @@
+# Iran Chat App - Complete Project Brief for AI Development Agent
+
+## 🎯 Project Overview
+
+**Project Name:** Iran Chat App  
+**Purpose:** Secure, lightweight messaging application for local networks in Iran  
+**Target:** Iranian users who need reliable local communication without external dependencies  
+**Architecture:** Real-time web-based chat application using Node.js and Socket.IO  
+
+## 📋 Project Requirements
+
+### Core Functionality
+1. **User Authentication System**
+   - Unique username format: `@username` (e.g., `@john_tehran`)
+   - Strong password requirements (8+ chars, uppercase, lowercase, number, special character)
+   - Local registration (no email/phone required)
+   - Secure password hashing with bcrypt
+
+2. **User Profile & Sharing**
+   - Auto-generated QR codes for each user profile
+   - Shareable profile links: `{baseurl}/@username`
+   - Profile display with username, display name, and QR code
+   - Copy-to-clipboard functionality for sharing
+
+3. **Chat Features**
+   - **One-to-One Chat:** Private messaging between two users
+   - **Group Chat:** Multi-user group conversations with admin controls
+   - Real-time message delivery using WebSocket/Socket.IO
+   - Message history and persistence
+   - Online/offline user status indicators
+
+4. **Friend/Contact System**
+   - Add friends by username search
+   - Friend request system
+   - Contact list management
+   - User discovery via search
+
+### Technical Requirements
+- **Backend:** Node.js with Express.js
+- **Real-time Communication:** Socket.IO for WebSocket handling
+- **Database:** SQLite for local data storage (lightweight, file-based)
+- **Frontend:** Pure HTML/CSS/JavaScript (no frameworks for simplicity)
+- **Security:** bcryptjs for password hashing, input validation
+- **QR Code Generation:** qrcode npm package
+- **Local Network Optimized:** Must work without internet connectivity
+
+## 🏗️ Technical Architecture
+
+### Backend Structure
+```
+server.js (main server file)
+├── Express.js web server
+├── Socket.IO real-time server
+├── Authentication endpoints (/api/login, /api/register)
+├── User management endpoints (/api/user/:username, /api/search/:query)
+├── Static file serving (HTML/CSS/JS)
+└── Database integration (SQLite)
+```
+
+### Frontend Structure
+```
+public/
+├── index.html (main chat interface)
+├── profile.html (user profile page for shareable links)
+└── assets/ (CSS, JavaScript, images)
+```
+
+### Database Schema
+```sql
+-- Users table
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    display_name TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    user_id TEXT UNIQUE NOT NULL,
+    qr_code TEXT,
+    shareable_link TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_online BOOLEAN DEFAULT 0
+);
+
+-- Friends/Contacts table
+CREATE TABLE friends (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    friend_id TEXT NOT NULL,
+    status TEXT DEFAULT 'accepted',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Messages table
+CREATE TABLE messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id TEXT NOT NULL,
+    recipient_id TEXT,
+    group_id TEXT,
+    message TEXT NOT NULL,
+    message_type TEXT DEFAULT 'text',
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Groups table
+CREATE TABLE groups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id TEXT UNIQUE NOT NULL,
+    group_name TEXT NOT NULL,
+    admin_id TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Group members table
+CREATE TABLE group_members (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 🔧 Key Features to Implement
+
+### 1. User Authentication Flow
+```javascript
+// Registration Process:
+1. User enters @username, display name, strong password
+2. Server validates input (username uniqueness, password strength)
+3. Password gets hashed with bcrypt (12 rounds)
+4. Generate UUID for user_id
+5. Create QR code containing user profile data
+6. Generate shareable link: baseurl/@username
+7. Store user in database
+8. Return user profile data (excluding password)
+
+// Login Process:
+1. User enters @username and password
+2. Server validates credentials against database
+3. Compare password with stored hash using bcrypt
+4. Create socket session and mark user as online
+5. Return user profile and friends list
+```
+
+### 2. Real-time Chat Implementation
+```javascript
+// Socket.IO Events to Handle:
+- 'authenticate': User connects and authenticates socket
+- 'private_message': Send one-to-one message
+- 'group_message': Send message to group
+- 'create_group': Create new group chat
+- 'add_friend': Add user to friends list
+- 'join_room': Join specific chat room
+- 'disconnect': Handle user going offline
+
+// Room Management:
+- Private chats: Create room with format "userId1_userId2" (sorted)
+- Group chats: Use group UUID as room name
+- Auto-join users to appropriate rooms on connection
+```
+
+### 3. Database Integration
+```javascript
+// Required Database Operations:
+- User CRUD (Create, Read, Update, Delete)
+- Friend relationship management
+- Message storage and retrieval
+- Group management (create, add/remove members)
+- Search functionality for users
+- Message history pagination
+```
+
+### 4. Security Considerations
+```javascript
+// Security Measures to Implement:
+- Input validation and sanitization
+- SQL injection prevention (use parameterized queries)
+- XSS protection (escape HTML in messages)
+- Rate limiting for API endpoints
+- Strong password enforcement
+- Session management for socket connections
+```
+
+## 📱 User Interface Requirements
+
+### Authentication UI
+- **Login Form:** Username (@format), Password, Login button
+- **Registration Form:** Username, Display Name, Password, Register button
+- **Form Validation:** Real-time feedback for username format and password strength
+- **Error Handling:** Clear error messages for invalid inputs
+
+### Main Chat Interface
+- **Header:** User avatar, display name, username, profile/logout buttons
+- **Sidebar:** Search box, friends list, add friend button, chat list
+- **Chat Area:** Message history, typing indicators, message input form
+- **Responsive Design:** Works on mobile and desktop devices
+
+### Profile Page
+- **User Info:** Avatar, display name, username
+- **QR Code:** Large, scannable QR code for profile sharing
+- **Shareable Link:** Copy-to-clipboard functionality
+- **Navigation:** Back to chat button
+
+## 🚀 Development Tasks for AI Agent
+
+### Phase 1: Core Backend Setup
+1. **Initialize Node.js project** with required dependencies
+2. **Set up Express.js server** with CORS and basic middleware
+3. **Integrate Socket.IO** for real-time communication
+4. **Create SQLite database** with required tables
+5. **Implement user authentication endpoints** (register/login)
+6. **Add input validation** and security measures
+
+### Phase 2: Database & User Management
+1. **Create database helper functions** for user operations
+2. **Implement user search functionality**
+3. **Add friend management system**
+4. **Create user profile endpoints**
+5. **Implement QR code generation**
+6. **Add shareable link handling**
+
+### Phase 3: Real-time Chat Features
+1. **Set up Socket.IO event handlers**
+2. **Implement private messaging system**
+3. **Create group chat functionality**
+4. **Add message persistence to database**
+5. **Implement online/offline status tracking**
+6. **Create room management system**
+
+### Phase 4: Frontend Development
+1. **Create responsive HTML/CSS layout**
+2. **Implement authentication forms**
+3. **Build chat interface components**
+4. **Add real-time message display**
+5. **Create profile management UI**
+6. **Implement QR code display and sharing**
+
+### Phase 5: Testing & Optimization
+1. **Test authentication flow**
+2. **Verify real-time messaging**
+3. **Test group chat functionality**
+4. **Validate security measures**
+5. **Optimize for local network performance**
+6. **Add error handling and user feedback**
+
+## 📂 File Structure to Create
+
+```
+iran-chat-app/
+├── package.json
+├── server.js
+├── database/
+│   ├── init.sql
+│   ├── database.js
+│   └── models/
+│       ├── User.js
+│       ├── Message.js
+│       └── Group.js
+├── public/
+│   ├── index.html
+│   ├── profile.html
+│   ├── css/
+│   │   └── styles.css
+│   ├── js/
+│   │   ├── app.js
+│   │   ├── chat.js
+│   │   └── auth.js
+│   └── assets/
+│       └── icons/
+├── routes/
+│   ├── auth.js
+│   ├── users.js
+│   └── chat.js
+├── middleware/
+│   ├── validation.js
+│   └── security.js
+├── utils/
+│   ├── qrcode.js
+│   └── helpers.js
+└── README.md
+```
+
+## 🎯 Success Criteria
+
+The project will be considered complete when:
+
+1. ✅ **Users can register** with unique @usernames and strong passwords
+2. ✅ **Users can login** and authenticate successfully
+3. ✅ **QR codes are generated** for each user profile
+4. ✅ **Shareable links work** (baseurl/@username format)
+5. ✅ **One-to-one chat functions** in real-time
+6. ✅ **Group chat works** with multiple participants
+7. ✅ **Friend system operates** (add, search, manage contacts)
+8. ✅ **Messages persist** in database
+9. ✅ **Online/offline status** updates correctly
+10. ✅ **App works on local networks** without internet
+11. ✅ **UI is responsive** and user-friendly
+12. ✅ **Security measures** are properly implemented
+
+## 🔍 Testing Requirements
+
+### Functional Testing
+- Register multiple users with different usernames
+- Test login/logout functionality
+- Send messages between users (one-to-one)
+- Create and test group chats
+- Add friends and verify contact lists
+- Test QR code generation and profile sharing
+- Verify message persistence across sessions
+
+### Security Testing
+- Test password strength validation
+- Verify bcrypt password hashing
+- Test input sanitization
+- Check for SQL injection vulnerabilities
+- Validate XSS protection
+
+### Network Testing
+- Test on local network without internet
+- Verify multiple users can connect simultaneously
+- Test real-time message delivery
+- Check connection stability and reconnection
+
+## 📝 Additional Notes for AI Agent
+
+1. **Focus on simplicity and reliability** - this app needs to work in challenging network conditions
+2. **Prioritize local storage** - use SQLite for easy deployment without external database dependencies
+3. **Ensure mobile compatibility** - many users will access via mobile devices
+4. **Implement proper error handling** - network issues are common, provide good user feedback
+5. **Use minimal external dependencies** - easier to deploy and maintain
+6. **Consider Persian language support** - add RTL text support if needed
+7. **Test thoroughly on local networks** - the primary use case is offline/local network operation
+
+This chat application is designed to provide Iranian users with a reliable, secure, and easy-to-use communication platform that works independently of external internet services while maintaining modern chat app functionality and user experience.

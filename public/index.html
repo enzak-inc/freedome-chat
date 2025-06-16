@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iran Chat - Secure Local Messaging</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            height: 600px;
+            display: flex;
+        }
+        
+        /* Auth Panel */
+        .auth-panel {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .auth-panel h2 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .toggle-auth {
+            text-align: center;
+            margin-top: 20px;
+            color: #667eea;
+            cursor: pointer;
+        }
+        
+        /* Chat Panel */
+        .chat-panel {
+            flex: 2;
+            display: none;
+            flex-direction: column;
+            background: #f8f9fa;
+        }
+        
+        .chat-header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .chat-content {
+            flex: 1;
+            display: flex;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: white;
+            border-right: 1px solid #e1e5e9;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 15px;
+            border-bottom: 1px solid #e1e5e9;
+            background: #f8f9fa;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e1e5e9;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .chat-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .chat-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .chat-item.active {
+            background: #e3f2fd;
+            border-right: 3px solid #667eea;
+        }
+        
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-end;
+        }
+        
+        .message.own {
+            justify-content: flex-end;
+        }
+        
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .message.own .message-bubble {
+            background: #667eea;
+            color: white;
+        }
+        
+        .message-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e5e9;
+        }
+        
+        .message-input-form {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 25px;
+            font-size: 16px;
+        }
+        
+        .send-btn {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+        
+        /* Profile Panel */
+        .profile-panel {
+            flex: 1;
+            padding: 40px;
+            text-align: center;
+            display: none;
+        }
+        
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+        }
+        
+        .share-link {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+            margin: 10px 0;
+            word-break: break-all;
+            font-family: monospace;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .sidebar {
+                width: 100%;
+                display: none;
+            }
+            
+            .sidebar.show {
+                display: flex;
+            }
+            
+            .chat-main.show {
+                display: flex;
+            }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .success {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Authentication Panel -->
+        <div class="auth-panel" id="authPanel">
+            <div id="loginForm">
+                <h2>Welcome to Iran Chat</h2>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" placeholder="@your_username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                </form>
+                <div class="toggle-auth" onclick="showRegister()">
+                    Don't have an account? Register here
+                </div>
+            </div>
+            
+            <div id="registerForm" class="hidden">
+                <h2>Create Account</h2>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <label for="regUsername">Username (starts with @)</label>
+                        <input type="text" id="regUsername" placeholder="@john_tehran" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regDisplayName">Display Name</label>
+                        <input type="text" id="regDisplayName" placeholder="John" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Strong Password</label>
+                        <input type="password" id="regPassword" required>
+                        <div class="error" id="passwordHelp">
+                            8+ characters, uppercase, lowercase, number, special character
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Register</button>
+                </form>
+                <div class="toggle-auth" onclick="showLogin()">
+                    Already have an account? Login here
+                </div>
+            </div>
+            
+            <div id="errorMessage" class="error"></div>
+        </div>
+        
+        <!-- Chat Panel -->
+        <div class="chat-panel" id="chatPanel">
+            <div class="chat-header">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">J</div>
+                    <div>
+                        <div id="userDisplayName">John</div>
+                        <div id="userUsername">@john_tehran</div>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="showProfile()" class="btn" style="padding: 8px 16px;">Profile</button>
+                    <button onclick="logout()" class="btn" style="padding: 8px 16px; background: #dc3545;">Logout</button>
+                </div>
+            </div>
+            
+            <div class="chat-content">
+                <div class="sidebar">
+                    <div class="sidebar-header">
+                        <input type="text" class="search-box" placeholder="Search users..." id="userSearch">
+                        <button onclick="showAddFriend()" class="btn" style="margin-top: 10px; padding: 8px;">Add Friend</button>
+                    </div>
+                    <div class="chat-list" id="chatList">
+                        <!-- Chat items will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="chat-main">
+                    <div class="messages-container" id="messagesContainer">
+                        <div style="text-align: center; color: #666; margin-top: 50px;">
+                            Select a chat to start messaging
+                        </div>
+                    </div>
+                    
+                    <div class="message-input-container">
+                        <form class="message-input-form" id="messageForm">
+                            <input type="text" class="message-input" id="messageInput" placeholder="Type a message..." disabled>
+                            <button type="submit" class="send-btn" disabled>Send</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Panel -->
+        <div class="profile-panel" id="profilePanel">
+            <h2>Your Profile</h2>
+            <div class="user-avatar" style="width: 80px; height: 80px; margin: 20px auto; font-size: 24px;" id="profileAvatar">J</div>
+            <h3 id="profileDisplayName">John</h3>
+            <p id="profileUsername">@john_tehran</p>
+            
+            <h4 style="margin-top: 30px;">Share Your Profile</h4>
+            <img class="qr-code" id="qrCodeImage" alt="QR Code">
+            <div class="share-link" id="shareableLink">http://localhost:3000/@john_tehran</div>
+            
+            <button onclick="copyShareLink()" class="btn" style="margin-top: 20px;">Copy Link</button>
+            <button onclick="showChat()" class="btn" style="margin-top: 10px; background: #6c757d;">Back to Chat</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Global variables
+        let socket;
+        let currentUser = null;
+        let currentChat = null;
+        let chats = new Map();
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            // Login form
+            document.getElementById('loginFormElement').addEventListener('submit', handleLogin);
+            document.getElementById('registerFormElement').addEventListener('submit', handleRegister);
+            document.getElementById('messageForm').addEventListener('submit', sendMessage);
+            document.getElementById('userSearch').addEventListener('input', searchUsers);
+        }
+        
+        function showRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+        
+        function showLogin() {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentUser = data.user;
+                    initializeChat();
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                showError('Login failed. Please try again.');
+            }
+        }
+        
+        async function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('regUsername').value;
+            const displayName = document.getElementById('regDisplayName').value;
+            const password = document.getElementById('regPassword').value;
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, displayName, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentUser = data.user;
+                    initializeChat();
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                showError('Registration failed. Please try again.');
+            }
+        }
+        
+        function initializeChat() {
+            // Hide auth panel, show chat
+            document.getElementById('authPanel').style.display = 'none';
+            document.getElementById('chatPanel').style.display = 'flex';
+            
+            // Update UI with user info
+            document.getElementById('userDisplayName').textContent = currentUser.displayName;
+            document.getElementById('userUsername').textContent = currentUser.username;
+            document.getElementById('userAvatar').textContent = currentUser.displayName[0].toUpperCase();
+            
+            // Initialize Socket.IO
+            socket = io();
+            
+            socket.emit('authenticate', currentUser);
+            
+            // Socket event listeners
+            socket.on('authenticated', () => {
+                console.log('Authenticated successfully');
+            });
+            
+            socket.on('private_message', (data) => {
+                displayMessage(data);
+            });
+            
+            socket.on('group_message', (data) => {
+                displayMessage(data);
+            });
+            
+            socket.on('user_online', (data) => {
+                updateUserStatus(data.username, true);
+            });
+            
+            socket.on('user_offline', (data) => {
+                updateUserStatus(data.username, false);
+            });
+            
+            // Load friends and chats
+            loadChats();
+        }
+        
+        function loadChats() {
+            // This would typically load from the server
+            // For now, we'll just show friends list
+            const chatList = document.getElementById('chatList');
+            chatList.innerHTML = '';
+            
+            if (currentUser.friends && currentUser.friends.length > 0) {
+                currentUser.friends.forEach(friendUsername => {
+                    addChatItem(friendUsername);
+                });
+            } else {
+                chatList.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No chats yet. Add friends to start chatting!</div>';
+            }
+        }
+        
+        function addChatItem(username) {
+            const chatList = document.getElementById('chatList');
+            const chatItem = document.createElement('div');
+            chatItem.className = 'chat-item';
+            chatItem.onclick = () => openChat(username);
+            
+            chatItem.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #667eea; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        ${username[1].toUpperCase()}
+                    </div>
+                    <div>
+                        <div style="font-weight: 500;">${username}</div>
+                        <div style="font-size: 12px; color: #666;">Click to chat</div>
+                    </div>
+                </div>
+            `;
+            
+            chatList.appendChild(chatItem);
+        }
+        
+        function openChat(username) {
+            currentChat = username;
+            
+            // Update active chat item
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.chat-item').classList.add('active');
+            
+            // Enable message input
+            document.getElementById('messageInput').disabled = false;
+            document.querySelector('.send-btn').disabled = false;
+            
+            // Load chat history (would be from server)
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = `
+                <div style="text-align: center; color: #666; margin: 20px 0;">
+                    Chat with ${username}
+                </div>
+            `;
+        }
+        
+        function sendMessage(e) {
+            e.preventDefault();
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message || !currentChat) return;
+            
+            // Send private message
+            socket.emit('private_message', {
+                recipientUsername: currentChat,
+                message: message
+            });
+            
+            messageInput.value = '';
+        }
+        
+        function displayMessage(data) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            
+            const isOwn = data.sender === currentUser.username;
+            messageDiv.className = `message ${isOwn ? 'own' : ''}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble">
+                    ${!isOwn ? `<div style="font-size: 12px; color: #666; margin-bottom: 5px;">${data.senderName}</div>` : ''}
+                    <div>${data.message}</div>
+                    <div style="font-size: 10px; opacity: 0.7; margin-top: 5px;">
+                        ${new Date(data.timestamp).toLocaleTimeString()}
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function showProfile() {
+            document.getElementById('chatPanel').style.display = 'none';
+            document.getElementById('profilePanel').style.display = 'flex';
+            
+            // Update profile info
+            document.getElementById('profileDisplayName').textContent = currentUser.displayName;
+            document.getElementById('profileUsername').textContent = currentUser.username;
+            document.getElementById('profileAvatar').textContent = currentUser.displayName[0].toUpperCase();
+            document.getElementById('qrCodeImage').src = currentUser.qrCode;
+            document.getElementById('shareableLink').textContent = currentUser.shareableLink;
+        }
+        
+        function showChat() {
+            document.getElementById('profilePanel').style.display = 'none';
+            document.getElementById('chatPanel').style.display = 'flex';
+        }
+        
+        function copyShareLink() {
+            const shareLink = document.getElementById('shareableLink').textContent;
+            navigator.clipboard.writeText(shareLink).then(() => {
+                alert('Share link copied to clipboard!');
+            });
+        }
+        
+        function logout() {
+            if (socket) {
+                socket.disconnect();
+            }
+            currentUser = null;
+            currentChat = null;
+            
+            document.getElementById('chatPanel').style.display = 'none';
+            document.getElementById('authPanel').style.display = 'flex';
+            showLogin();
+        }
+        
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            setTimeout(() => {
+                document.getElementById('errorMessage').textContent = '';
+            }, 5000);
+        }
+        
+        function updateUserStatus(username, isOnline) {
+            // Update UI to show user online/offline status
+            console.log(`${username} is ${isOnline ? 'online' : 'offline'}`);
+        }
+        
+        async function searchUsers() {
+            const query = document.getElementById('userSearch').value.trim();
+            if (query.length < 2) return;
+            
+            try {
+                const response = await fetch(`/api/search/${query}`);
+                const users = await response.json();
+                
+                // Show search results (implementation depends on your UI design)
+                console.log('Search results:', users);
+            } catch (error) {
+                console.error('Search failed:', error);
+            }
+        }
+        
+        function showAddFriend() {
+            const friendUsername = prompt('Enter username to add as friend (e.g., @john_tehran):');
+            if (friendUsername) {
+                socket.emit('add_friend', { friendUsername });
+            }
+        }
+    </script>
+</body>
+</html>
