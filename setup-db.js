@@ -59,7 +59,7 @@ async function setupDatabase() {
         
         const statements = allStatements
             .map(stmt => stmt.trim())
-            .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+            .filter(stmt => stmt.length > 0);
         
         console.log('📋 Statements after filtering:');
         statements.forEach((stmt, i) => {
