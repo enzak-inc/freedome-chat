@@ -1,409 +1,336 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Iran Chat - Secure Local Messaging</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body>
-    <!-- Login/Register Container -->
-    <div id="authContainer" class="auth-container">
-        <div class="auth-box">
-            <h1>Iran Chat</h1>
-            <p class="tagline">Secure Local Messaging</p>
-            
-            <!-- Login Form -->
-            <div id="loginForm" class="auth-form">
-                <h2>Login</h2>
-                <form onsubmit="handleLogin(event)">
-                    <input type="text" id="loginUsername" placeholder="@username" required>
-                    <input type="password" id="loginPassword" placeholder="Password" required>
-                    <button type="submit">Login</button>
-                </form>
-                <p>Don't have an account? <a href="#" onclick="showRegister()">Register</a></p>
-                <div id="loginError" class="error"></div>
+// Chat Application Module
+let socket = null;
+let currentUser = null;
+let selectedChat = null;
+let friends = [];
+let messages = {};
+
+// Initialize chat application
+function initChat() {
+    currentUser = Auth.getCurrentUser();
+    console.log('initChat - currentUser:', currentUser);
+    
+    if (!currentUser || !currentUser.username) {
+        console.log('No valid user found, redirecting to login');
+        Auth.logout();
+        return;
+    }
+
+    // Connect to Socket.IO
+    socket = io();
+    
+    // Authenticate with server
+    console.log('Sending authenticate event with:', { username: currentUser.username });
+    socket.emit('authenticate', { username: currentUser.username });
+    
+    // Set up event listeners
+    setupSocketListeners();
+    
+    // Load friends list
+    loadFriends();
+}
+
+// Socket.IO event listeners
+function setupSocketListeners() {
+    socket.on('authenticated', (data) => {
+        if (data.success) {
+            console.log('Authenticated with server');
+        }
+    });
+
+    socket.on('private_message', (data) => {
+        console.log('Private message received:', data);
+        
+        // Determine which user this chat is with
+        const chatUsername = data.sender === currentUser.username ? data.recipientUsername : data.sender;
+        
+        // Store message
+        if (!messages[chatUsername]) messages[chatUsername] = [];
+        messages[chatUsername].push(data);
+        
+        // Update UI if this chat is selected
+        if (selectedChat === chatUsername) {
+            console.log('Message is for current chat, displaying...');
+            displayMessage(data);
+        }
+        
+        // Show notification for new messages from others
+        if (data.sender !== currentUser.username) {
+            showNotification(`New message from ${data.senderName}`);
+        }
+        
+        // Update conversation preview
+        updateConversationPreview(data);
+    });
+
+    socket.on('user_online', (data) => {
+        updateUserStatus(data.username, true);
+    });
+
+    socket.on('user_offline', (data) => {
+        updateUserStatus(data.username, false);
+    });
+
+    socket.on('friend_added', (data) => {
+        console.log('Friend added event received:', data);
+        friends.push(data);
+        displayFriend(data);
+        showNotification(`${data.displayName} is now your friend!`);
+        
+        // Also update the currentUser friends list
+        if (currentUser.friends) {
+            currentUser.friends.push(data);
+        } else {
+            currentUser.friends = [data];
+        }
+        
+        // Save updated user data
+        Auth.saveUser(currentUser);
+    });
+
+    socket.on('friend_request_accepted', (data) => {
+        showNotification(`${data.displayName} accepted your friend request!`);
+        loadFriends();
+    });
+
+    socket.on('error', (data) => {
+        console.log('Socket error received:', data);
+        showNotification(`Error: ${data.message}`);
+    });
+}
+
+// Load friends list
+async function loadFriends() {
+    try {
+        // For now, use the friends from user data
+        friends = currentUser.friends || [];
+        displayFriendsList();
+    } catch (error) {
+        console.error('Error loading friends:', error);
+    }
+}
+
+// Display friends list
+function displayFriendsList() {
+    const friendsList = document.getElementById('friendsList');
+    if (!friendsList) return;
+    
+    friendsList.innerHTML = '';
+    
+    if (friends.length === 0) {
+        friendsList.innerHTML = '<p class="no-friends">No conversations yet. Add friends to start chatting!</p>';
+        return;
+    }
+    
+    friends.forEach(friend => displayFriend(friend));
+}
+
+// Display single friend (conversation item)
+function displayFriend(friend) {
+    console.log('displayFriend called with:', friend);
+    const friendsList = document.getElementById('friendsList');
+    if (!friendsList) return;
+    
+    // Handle different friend data structures
+    const displayName = friend.displayName || friend.display_name || friend.username;
+    const username = friend.username;
+    const isOnline = friend.isOnline || friend.is_online || false;
+    
+    if (!displayName || !username) {
+        console.error('Invalid friend data:', friend);
+        return;
+    }
+    
+    // Get last message for preview
+    const lastMessage = getLastMessage(username);
+    const previewText = lastMessage ? lastMessage.message : 'No messages yet';
+    const messageTime = lastMessage ? formatMessageTime(lastMessage.timestamp) : '';
+    
+    const friendEl = document.createElement('div');
+    friendEl.className = 'conversation-item';
+    friendEl.dataset.username = username;
+    friendEl.innerHTML = `
+        <div class="conversation-avatar">${displayName[0].toUpperCase()}</div>
+        <div class="conversation-content">
+            <div class="conversation-header-info">
+                <div class="conversation-name">${displayName}</div>
+                <div class="conversation-time">${messageTime}</div>
             </div>
-            
-            <!-- Register Form -->
-            <div id="registerForm" class="auth-form hidden">
-                <h2>Register</h2>
-                <form onsubmit="handleRegister(event)">
-                    <input type="text" id="regUsername" placeholder="@username" required pattern="@[a-zA-Z0-9_]{3,}">
-                    <input type="text" id="regDisplayName" placeholder="Display Name" required>
-                    <input type="password" id="regPassword" placeholder="Password (8+ chars)" required minlength="8">
-                    <div class="password-hint">Password must be 8+ characters with uppercase, lowercase, number, and special character</div>
-                    <button type="submit">Register</button>
-                </form>
-                <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
-                <div id="registerError" class="error"></div>
-            </div>
+            <div class="conversation-details">${username}</div>
+            <div class="conversation-preview">${escapeHtml(previewText)}</div>
         </div>
-    </div>
+        <div class="conversation-status">${isOnline ? '🟢' : ''}</div>
+    `;
+    
+    friendEl.onclick = () => selectChat(username, displayName);
+    friendsList.appendChild(friendEl);
+}
 
-    <!-- Main Chat Container -->
-    <div id="chatContainer" class="chat-container hidden">
-        <!-- Conversations View -->
-        <div id="conversationsView" class="conversations-view active">
-            <!-- iOS Status Bar -->
-            <div class="ios-status-bar">
-                <span class="status-time" id="statusTime"></span>
-                <div class="status-icons">
-                    <span class="signal">•••••</span>
-                    <span class="wifi">📶</span>
-                    <span class="battery">🔋</span>
-                </div>
-            </div>
-            
-            <!-- Navigation Bar -->
-            <div class="ios-nav-bar">
-                <button class="edit-btn" onclick="toggleEditMode()">Edit</button>
-                <h1 class="nav-title">Messages</h1>
-                <button class="compose-btn" onclick="addFriend()">✎</button>
-            </div>
-            
-            <!-- Search Bar -->
-            <div class="ios-search-container">
-                <div class="ios-search-bar">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="searchInput" placeholder="Search" onkeyup="handleSearch(event)">
-                    <button class="cancel-search hidden" onclick="cancelSearch()">Cancel</button>
-                </div>
-            </div>
-            
-            <!-- Conversations List -->
-            <div class="conversations-scroll">
-                <div id="friendsList" class="ios-conversations-list"></div>
-            </div>
-            
-            <!-- Search Results Overlay -->
-            <div id="searchResults" class="search-results-overlay hidden"></div>
+// Send message
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    if (!input || !input.value.trim() || !selectedChat || !socket) return;
+    
+    const message = input.value.trim();
+    
+    // Send via Socket.IO
+    socket.emit('private_message', {
+        recipientUsername: selectedChat,
+        message: message
+    });
+    
+    // Display immediately
+    displayMessage({
+        sender: currentUser.username,
+        senderName: currentUser.displayName,
+        message: message,
+        timestamp: new Date().toISOString()
+    });
+    
+    // Clear input
+    input.value = '';
+    input.focus();
+}
+
+// Display message
+function displayMessage(data) {
+    const messagesEl = document.getElementById('messages');
+    if (!messagesEl) return;
+    
+    const isSent = data.sender === currentUser.username;
+    const messageEl = document.createElement('div');
+    messageEl.className = `message ${isSent ? 'sent' : 'received'}`;
+    
+    const time = new Date(data.timestamp).toLocaleTimeString();
+    
+    messageEl.innerHTML = `
+        <div class="message-content">${escapeHtml(data.message)}</div>
+        <div class="message-info">
+            <div class="message-time">${time}</div>
         </div>
+    `;
+    
+    messagesEl.appendChild(messageEl);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+// Add friend function
+async function addFriend() {
+    const username = prompt('Enter friend username (e.g., @username):');
+    if (!username) return;
+    
+    // Ensure username starts with @
+    const friendUsername = username.startsWith('@') ? username : '@' + username;
+    
+    if (socket) {
+        socket.emit('add_friend', { friendUsername });
+    }
+}
+
+// Search users
+async function searchUsers(query) {
+    try {
+        const response = await fetch(`/api/search/${encodeURIComponent(query)}`);
+        const users = await response.json();
+        displaySearchResults(users);
+    } catch (error) {
+        console.error('Search error:', error);
+    }
+}
+
+// Helper functions
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getLastMessage(username) {
+    if (!messages[username] || messages[username].length === 0) {
+        return null;
+    }
+    return messages[username][messages[username].length - 1];
+}
+
+function formatMessageTime(timestamp) {
+    const now = new Date();
+    const messageDate = new Date(timestamp);
+    const diffMs = now - messageDate;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+        // Today - show time
+        return messageDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    } else if (diffDays === 1) {
+        // Yesterday
+        return 'Yesterday';
+    } else if (diffDays < 7) {
+        // This week - show day
+        return messageDate.toLocaleDateString([], {weekday: 'short'});
+    } else {
+        // Older - show date
+        return messageDate.toLocaleDateString([], {month: 'short', day: 'numeric'});
+    }
+}
+
+function updateConversationPreview(messageData) {
+    // Determine which user this chat is with
+    const chatUsername = messageData.sender === currentUser.username ? 
+        messageData.recipientUsername : messageData.sender;
+    
+    const friendEl = document.querySelector(`[data-username="${chatUsername}"]`);
+    if (friendEl) {
+        const previewEl = friendEl.querySelector('.conversation-preview');
+        const timeEl = friendEl.querySelector('.conversation-time');
         
-        <!-- Chat View -->
-        <div id="chatView" class="chat-view">
-            <!-- iOS Status Bar -->
-            <div class="ios-status-bar">
-                <span class="status-time" id="chatStatusTime"></span>
-                <div class="status-icons">
-                    <span class="signal">•••••</span>
-                    <span class="wifi">📶</span>
-                    <span class="battery">🔋</span>
-                </div>
-            </div>
-            
-            <!-- Chat Navigation Bar -->
-            <div class="ios-chat-nav">
-                <button class="ios-back-btn" onclick="backToConversations()">
-                    <span class="back-arrow">‹</span>
-                    <span class="back-text">Messages</span>
-                </button>
-                <div class="chat-nav-center">
-                    <div id="chatTitleName" class="chat-contact-name"></div>
-                    <div id="chatTitleUsername" class="chat-contact-username"></div>
-                </div>
-                <button class="chat-info-btn">ⓘ</button>
-            </div>
-            
-            <!-- Messages Container -->
-            <div id="messages" class="ios-messages-container"></div>
-            
-            <!-- Message Input Bar -->
-            <div class="ios-message-input-bar">
-                <button class="attach-btn">+</button>
-                <div class="ios-input-wrapper">
-                    <input type="text" id="messageInput" placeholder="iMessage" onkeypress="handleMessageKeypress(event)" disabled>
-                </div>
-                <button onclick="sendMessage()" disabled id="sendBtn" class="ios-send-btn">↑</button>
-            </div>
-        </div>
-        
-        <!-- User Info Bottom Tab -->
-        <div class="ios-tab-bar">
-            <div class="tab-user-info">
-                <div id="userAvatar" class="tab-avatar"></div>
-                <span id="userName" class="tab-username"></span>
-                <button onclick="logout()" class="tab-logout">⎋</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="/js/auth.js"></script>
-    <script src="/js/chat.js"></script>
-    <script>
-        // Global variables are declared in chat.js
-
-        // Check if user is logged in on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('Page loaded, checking auth status...');
-            
-            // Check for logout parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('logout')) {
-                // Clear any remaining cache and ensure logout
-                localStorage.clear();
-                console.log('Logout detected, clearing all cache...');
-            }
-            
-            if (Auth.isLoggedIn()) {
-                console.log('User is logged in, initializing chat...');
-                currentUser = Auth.getCurrentUser();
-                showChatInterface();
-                initChat();
-            } else {
-                console.log('User not logged in, showing auth form...');
-                showAuthInterface();
-                // Clear forms safely
-                setTimeout(() => {
-                    const loginUsernameEl = document.getElementById('loginUsername');
-                    const loginPasswordEl = document.getElementById('loginPassword');
-                    if (loginUsernameEl) loginUsernameEl.value = '';
-                    if (loginPasswordEl) loginPasswordEl.value = '';
-                    clearError('loginError');
-                    clearError('registerError');
-                }, 50);
-            }
-        });
-
-        // Handle login
-        async function handleLogin(event) {
-            event.preventDefault();
-            console.log('Login attempt...');
-            
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            
-            // Ensure username starts with @
-            const formattedUsername = username.startsWith('@') ? username : '@' + username;
-            
-            console.log('Attempting login for:', formattedUsername);
-            
-            const result = await Auth.login(formattedUsername, password);
-            
-            if (result.success) {
-                console.log('Login successful:', result.user);
-                currentUser = result.user;
-                showChatInterface();
-                initChat();
-                clearError('loginError');
-            } else {
-                console.log('Login failed:', result.error);
-                showError('loginError', result.error);
-            }
-        }
-
-        // Handle register
-        async function handleRegister(event) {
-            event.preventDefault();
-            console.log('Register attempt...');
-            
-            const username = document.getElementById('regUsername').value.trim();
-            const displayName = document.getElementById('regDisplayName').value.trim();
-            const password = document.getElementById('regPassword').value;
-            
-            // Ensure username starts with @
-            const formattedUsername = username.startsWith('@') ? username : '@' + username;
-            
-            console.log('Attempting registration for:', formattedUsername);
-            
-            const result = await Auth.register(formattedUsername, displayName, password);
-            
-            if (result.success) {
-                console.log('Registration successful:', result.user);
-                currentUser = result.user;
-                showChatInterface();
-                initChat();
-                clearError('registerError');
-            } else {
-                console.log('Registration failed:', result.error);
-                showError('registerError', result.error);
-            }
-        }
-
-        // UI helpers
-        function showLogin() {
-            document.getElementById('loginForm').classList.remove('hidden');
-            document.getElementById('registerForm').classList.add('hidden');
-            clearError('loginError');
-            clearError('registerError');
-        }
-
-        function showRegister() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('registerForm').classList.remove('hidden');
-            clearError('loginError');
-            clearError('registerError');
-        }
-
-        function showAuthInterface() {
-            document.getElementById('authContainer').classList.remove('hidden');
-            document.getElementById('chatContainer').classList.add('hidden');
-        }
-
-        function showChatInterface() {
-            document.getElementById('authContainer').classList.add('hidden');
-            document.getElementById('chatContainer').classList.remove('hidden');
-            updateUserTabInfo();
-        }
-
-        function showError(elementId, message) {
-            const errorEl = document.getElementById(elementId);
-            if (errorEl) {
-                errorEl.textContent = message;
-            }
-        }
-
-        function clearError(elementId) {
-            const errorEl = document.getElementById(elementId);
-            if (errorEl) {
-                errorEl.textContent = '';
-            }
-        }
-
-        function handleMessageKeypress(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        }
-
-        function handleSearch(event) {
-            const query = event.target.value;
-            const cancelBtn = document.querySelector('.cancel-search');
-            
-            if (query.length > 0) {
-                cancelBtn.classList.remove('hidden');
-                if (query.length > 2) {
-                    searchUsers(query);
-                }
-            } else {
-                cancelBtn.classList.add('hidden');
-                document.getElementById('searchResults').classList.add('hidden');
-            }
-        }
-
-        function cancelSearch() {
-            document.getElementById('searchInput').value = '';
-            document.querySelector('.cancel-search').classList.add('hidden');
-            document.getElementById('searchResults').classList.add('hidden');
-        }
-
-        function displaySearchResults(users) {
-            const resultsEl = document.getElementById('searchResults');
-            resultsEl.innerHTML = '';
-            
-            if (users.length === 0) {
-                resultsEl.innerHTML = '<p class="no-results">No users found</p>';
-            } else {
-                users.forEach(user => {
-                    const userEl = document.createElement('div');
-                    userEl.className = 'search-result-item';
-                    userEl.innerHTML = `
-                        <div class="user-info">
-                            <div class="user-name">${user.display_name}</div>
-                            <div class="user-username">${user.username}</div>
-                        </div>
-                        <button onclick="addFriendByUsername('${user.username}')" class="add-btn">Add</button>
-                    `;
-                    resultsEl.appendChild(userEl);
-                });
-            }
-            
-            resultsEl.classList.remove('hidden');
-        }
-
-        function addFriendByUsername(username) {
-            if (socket) {
-                socket.emit('add_friend', { friendUsername: username });
-                cancelSearch();
-            }
-        }
-
-        function backToConversations() {
-            const conversationsView = document.getElementById('conversationsView');
-            const chatView = document.getElementById('chatView');
-            
-            conversationsView.classList.add('active');
-            chatView.classList.remove('active');
-            
-            // Clear selected chat
-            selectedChat = null;
-            document.querySelectorAll('.conversation-item').forEach(el => {
-                el.classList.remove('active');
-            });
+        if (previewEl) {
+            const prefix = messageData.sender === currentUser.username ? 'You: ' : '';
+            previewEl.textContent = prefix + messageData.message;
         }
         
-        function toggleEditMode() {
-            // Placeholder for edit mode functionality
-            console.log('Edit mode toggled');
+        if (timeEl) {
+            timeEl.textContent = formatMessageTime(messageData.timestamp);
         }
         
-        function updateStatusTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            const statusTimeEl = document.getElementById('statusTime');
-            const chatStatusTimeEl = document.getElementById('chatStatusTime');
-            
-            if (statusTimeEl) statusTimeEl.textContent = timeString;
-            if (chatStatusTimeEl) chatStatusTimeEl.textContent = timeString;
+        // Move to top of list
+        const friendsList = document.getElementById('friendsList');
+        if (friendsList && friendEl.parentNode === friendsList) {
+            friendsList.removeChild(friendEl);
+            friendsList.insertBefore(friendEl, friendsList.firstChild);
         }
-        
-        // Update time every minute
-        setInterval(updateStatusTime, 60000);
-        updateStatusTime();
+    }
+}
 
-        function updateUserTabInfo() {
-            if (currentUser) {
-                const avatarEl = document.getElementById('userAvatar');
-                const nameEl = document.getElementById('userName');
-                
-                if (avatarEl) {
-                    avatarEl.textContent = currentUser.displayName[0].toUpperCase();
-                }
-                if (nameEl) {
-                    nameEl.textContent = currentUser.displayName;
-                }
-            }
-        }
+function showNotification(message) {
+    // Simple notification
+    console.log('Notification:', message);
+    
+    const notif = document.createElement('div');
+    notif.className = 'notification';
+    notif.textContent = message;
+    document.body.appendChild(notif);
+    
+    setTimeout(() => notif.remove(), 3000);
+}
 
-        // Override logout to use Auth module
-        function logout() {
-            Auth.logout();
+function updateUserStatus(username, isOnline) {
+    const friendEl = document.querySelector(`[data-username="${username}"]`);
+    if (friendEl) {
+        const statusEl = friendEl.querySelector('.conversation-status');
+        if (statusEl) {
+            statusEl.textContent = isOnline ? '🟢' : '';
         }
-        
-        // Override selectChat for iOS navigation
-        window.selectChat = function(username, displayName) {
-            selectedChat = username;
-            
-            // Switch views
-            const conversationsView = document.getElementById('conversationsView');
-            const chatView = document.getElementById('chatView');
-            
-            conversationsView.classList.remove('active');
-            chatView.classList.add('active');
-            
-            // Update chat header
-            const chatTitleName = document.getElementById('chatTitleName');
-            const chatTitleUsername = document.getElementById('chatTitleUsername');
-            
-            if (chatTitleName) chatTitleName.textContent = displayName;
-            if (chatTitleUsername) chatTitleUsername.textContent = username;
-            
-            // Enable message input
-            const messageInput = document.getElementById('messageInput');
-            const sendBtn = document.getElementById('sendBtn');
-            
-            if (messageInput && sendBtn) {
-                messageInput.disabled = false;
-                sendBtn.disabled = false;
-                messageInput.placeholder = 'iMessage';
-            }
-            
-            // Load messages
-            loadMessages(username);
-        };
-    </script>
-</body>
-</html>
+    }
+}
+
+function loadMessages(username) {
+    const messagesEl = document.getElementById('messages');
+    if (!messagesEl) return;
+    
+    messagesEl.innerHTML = '';
+    
+    // Display cached messages if any
+    if (messages[username]) {
+        messages[username].forEach(msg => displayMessage(msg));
+    }
+}
