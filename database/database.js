@@ -1,81 +1,127 @@
-const sqlite3 = require('sqlite3').verbose();
+require('dotenv').config();
+const mysql = require('mysql2/promise');
 const path = require('path');
 const fs = require('fs');
 
-// Database file path
-const DB_PATH = path.join(__dirname, 'chat.db');
+// Database configuration
+const DB_CONFIG = {
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'iran_chat_db',
+    charset: 'utf8mb4',
+    timezone: '+00:00',
+    acquireTimeout: 60000,
+    timeout: 60000,
+    reconnect: true
+};
+
 const INIT_SQL_PATH = path.join(__dirname, 'init.sql');
 
-// Create database connection
-const db = new sqlite3.Database(DB_PATH, (err) => {
-    if (err) {
-        console.error('Error opening database:', err);
-        process.exit(1);
-    }
-    console.log('Connected to SQLite database');
-});
+// Connection pool
+let pool;
 
-// Enable foreign keys
-db.run('PRAGMA foreign_keys = ON');
-
-// Initialize database with schema
-function initializeDatabase() {
-    return new Promise((resolve, reject) => {
-        // Read the init.sql file
-        fs.readFile(INIT_SQL_PATH, 'utf8', (err, sql) => {
-            if (err) {
-                console.error('Error reading init.sql:', err);
-                reject(err);
-                return;
-            }
-
-            // Execute the SQL commands
-            db.exec(sql, (err) => {
-                if (err) {
-                    console.error('Error initializing database:', err);
-                    reject(err);
-                    return;
-                }
-                console.log('Database initialized successfully');
-                resolve();
-            });
-        });
+// Initialize connection pool
+function createPool() {
+    pool = mysql.createPool({
+        ...DB_CONFIG,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
     });
+    
+    console.log('MySQL connection pool created');
+    return pool;
 }
 
-// Promisified database methods
+// Initialize database with schema
+async function initializeDatabase() {
+    try {
+        // Create connection pool
+        if (!pool) {
+            createPool();
+        }
+        
+        // Test connection
+        const connection = await pool.getConnection();
+        console.log('Connected to MySQL database');
+        
+        // Read and execute the init.sql file
+        const sql = fs.readFileSync(INIT_SQL_PATH, 'utf8');
+        
+        // Split SQL statements by semicolon and execute each one
+        const statements = sql.split(';').filter(stmt => stmt.trim().length > 0);
+        
+        for (const statement of statements) {
+            if (statement.trim()) {
+                await connection.execute(statement);
+            }
+        }
+        
+        connection.release();
+        console.log('Database initialized successfully');
+        
+    } catch (error) {
+        console.error('Error initializing database:', error);
+        throw error;
+    }
+}
+
+// Database async methods
 const dbAsync = {
-    run: (sql, params = []) => {
-        return new Promise((resolve, reject) => {
-            db.run(sql, params, function(err) {
-                if (err) reject(err);
-                else resolve({ id: this.lastID, changes: this.changes });
-            });
-        });
+    execute: async (sql, params = []) => {
+        try {
+            const [result] = await pool.execute(sql, params);
+            return {
+                id: result.insertId,
+                changes: result.affectedRows,
+                result
+            };
+        } catch (error) {
+            console.error('Database execute error:', error);
+            throw error;
+        }
     },
     
-    get: (sql, params = []) => {
-        return new Promise((resolve, reject) => {
-            db.get(sql, params, (err, row) => {
-                if (err) reject(err);
-                else resolve(row);
-            });
-        });
+    get: async (sql, params = []) => {
+        try {
+            const [rows] = await pool.execute(sql, params);
+            return rows[0] || null;
+        } catch (error) {
+            console.error('Database get error:', error);
+            throw error;
+        }
     },
     
-    all: (sql, params = []) => {
-        return new Promise((resolve, reject) => {
-            db.all(sql, params, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
+    all: async (sql, params = []) => {
+        try {
+            const [rows] = await pool.execute(sql, params);
+            return rows;
+        } catch (error) {
+            console.error('Database all error:', error);
+            throw error;
+        }
+    },
+    
+    run: async (sql, params = []) => {
+        return await dbAsync.execute(sql, params);
     }
 };
 
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    if (pool) {
+        await pool.end();
+        console.log('MySQL connection pool closed');
+    }
+    process.exit(0);
+});
+
 // Export database and helper functions
 module.exports = {
-    db,
+    pool,
     dbAsync,
-    initializeDatabase
+    initializeDatabase,
+    createPool
 };
