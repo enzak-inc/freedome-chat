@@ -1006,6 +1006,165 @@ body.light-theme .send-btn:disabled {
     background: rgba(0, 0, 0, 0.05);
 }
 
+/* About View */
+.about-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.about-view.active {
+    transform: translateX(0);
+}
+
+.about-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 15px;
+}
+
+.about-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+}
+
+.about-content {
+    flex: 1;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    overflow-y: auto;
+}
+
+.about-message {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 25px;
+    line-height: 1.8;
+}
+
+.about-message p {
+    margin: 0 0 20px 0;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: right;
+    direction: rtl;
+}
+
+.about-message p:last-child {
+    margin-bottom: 0;
+}
+
+.closing-message {
+    font-weight: 600;
+    color: #4a9eff !important;
+    text-align: center !important;
+    font-size: 17px !important;
+    margin-top: 15px !important;
+}
+
+.app-info {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-label {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.info-value {
+    font-size: 15px;
+    color: #fff;
+    font-weight: 500;
+}
+
+.about-actions {
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+.about-actions .cancel-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #4a9eff;
+    color: white;
+}
+
+.about-actions .cancel-btn:hover {
+    background: #3a8eef;
+    transform: translateY(-1px);
+}
+
+/* Light Theme Styles for About */
+body.light-theme .about-view {
+    background: #f5f5f5;
+}
+
+body.light-theme .about-header {
+    background: rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .about-title {
+    color: #000;
+}
+
+body.light-theme .about-message {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .about-message p {
+    color: rgba(0, 0, 0, 0.8);
+}
+
+body.light-theme .app-info {
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .info-label {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+body.light-theme .info-value {
+    color: #000;
+}
+
 /* Edit Profile View */
 .edit-profile-view {
     position: fixed;

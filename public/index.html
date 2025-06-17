@@ -165,6 +165,43 @@
             </div>
         </div>
         
+        <!-- About Us View -->
+        <div id="aboutView" class="about-view">
+            <!-- About Header -->
+            <div class="about-header">
+                <button class="back-btn" onclick="backToConversations()">‹</button>
+                <h2 class="about-title">درباره ما</h2>
+            </div>
+            
+            <!-- About Content -->
+            <div class="about-content">
+                <div class="about-message">
+                    <p>من یه ایرانی‌ام، درست مثل شما. الان در کالیفرنیا زندگی می‌کنم، اما دلم همیشه با مردم شجاع و آزادی‌خواه ایرانِ. این اپلیکیشن رو ساختم چون می‌دونم حکومت چطور تلاش می‌کنه با قطع اینترنت و محدود کردن ارتباطات، صدای مردم رو خاموش کنه. اما ما ساکت نمی‌شیم.</p>
+                    
+                    <p>این برنامه رو با تمام وجودم ساختم تا کمک کنه شما بتونید با هم در تماس باشید، حرف‌هاتون رو آزادانه بزنید و بدون ترس، کنار هم بمونید. این فقط یه اپ نیست؛ یه پل ارتباطیه برای اتحاد، امید و ادامه راه آزادی.</p>
+                    
+                    <p class="closing-message">بدونید که تنها نیستید—من و خیلی‌های دیگه کنار شماییم.</p>
+                </div>
+                
+                <!-- App Info -->
+                <div class="app-info">
+                    <div class="info-item">
+                        <span class="info-label">نسخه:</span>
+                        <span class="info-value">۱.۰</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">ساخته شده با:</span>
+                        <span class="info-value">Socket.IO</span>
+                    </div>
+                </div>
+                
+                <!-- Action Button -->
+                <div class="about-actions">
+                    <button class="cancel-btn" onclick="backToConversations()">بازگشت</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Edit Profile View -->
         <div id="editProfileView" class="edit-profile-view">
             <!-- Edit Profile Header -->
@@ -489,11 +526,13 @@
             const chatView = document.getElementById('chatView');
             const newChatView = document.getElementById('newChatView');
             const editProfileView = document.getElementById('editProfileView');
+            const aboutView = document.getElementById('aboutView');
             
             conversationsView.classList.add('active');
             chatView.classList.remove('active');
             newChatView.classList.remove('active');
             editProfileView.classList.remove('active');
+            aboutView.classList.remove('active');
             
             selectedChat = null;
             document.querySelectorAll('.conversation-item').forEach(el => {
@@ -697,7 +736,24 @@
 
         function showAbout() {
             closeMenu();
-            alert('ایران آزاد نسخه ۱.۰\nپیام‌رسان محلی امن\nساخته شده با Socket.IO');
+            showAboutView();
+        }
+
+        function showAboutView() {
+            const conversationsView = document.getElementById('conversationsView');
+            const chatView = document.getElementById('chatView');
+            const newChatView = document.getElementById('newChatView');
+            const editProfileView = document.getElementById('editProfileView');
+            const aboutView = document.getElementById('aboutView');
+            
+            // Hide all other views
+            conversationsView.classList.remove('active');
+            chatView.classList.remove('active');
+            newChatView.classList.remove('active');
+            editProfileView.classList.remove('active');
+            
+            // Show about view
+            aboutView.classList.add('active');
         }
 
         function logout() {
