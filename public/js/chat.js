@@ -48,18 +48,20 @@ function setupSocketListeners() {
         if (!messages[chatUsername]) messages[chatUsername] = [];
         messages[chatUsername].push(data);
         
-        // Update UI if this chat is selected
-        if (selectedChat === chatUsername) {
-            console.log('Message is for current chat, displaying...');
-            displayMessage(data);
-        }
-        
-        // Show notification for new messages from others
+        // Only display if this is a received message (not sent by us)
+        // OR if this chat is not currently selected (to handle tab switching)
         if (data.sender !== currentUser.username) {
+            // Update UI if this chat is selected
+            if (selectedChat === chatUsername) {
+                console.log('Received message for current chat, displaying...');
+                displayMessage(data);
+            }
+            
+            // Show notification for new messages from others
             showNotification(`New message from ${data.senderName}`);
         }
         
-        // Update conversation preview
+        // Update conversation preview for all messages
         updateConversationPreview(data);
     });
 
@@ -173,18 +175,26 @@ function sendMessage() {
     
     const message = input.value.trim();
     
+    // Create message data
+    const messageData = {
+        sender: currentUser.username,
+        senderName: currentUser.displayName,
+        message: message,
+        timestamp: new Date().toISOString(),
+        recipientUsername: selectedChat
+    };
+    
+    // Store message locally
+    if (!messages[selectedChat]) messages[selectedChat] = [];
+    messages[selectedChat].push(messageData);
+    
+    // Display immediately
+    displayMessage(messageData);
+    
     // Send via Socket.IO
     socket.emit('private_message', {
         recipientUsername: selectedChat,
         message: message
-    });
-    
-    // Display immediately
-    displayMessage({
-        sender: currentUser.username,
-        senderName: currentUser.displayName,
-        message: message,
-        timestamp: new Date().toISOString()
     });
     
     // Clear input
