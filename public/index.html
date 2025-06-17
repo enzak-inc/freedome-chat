@@ -89,6 +89,15 @@
         // Check if user is logged in on page load
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Page loaded, checking auth status...');
+            
+            // Check for logout parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('logout')) {
+                // Clear any remaining cache and ensure logout
+                localStorage.clear();
+                console.log('Logout detected, clearing all cache...');
+            }
+            
             if (Auth.isLoggedIn()) {
                 console.log('User is logged in, initializing chat...');
                 currentUser = Auth.getCurrentUser();
@@ -97,6 +106,15 @@
             } else {
                 console.log('User not logged in, showing auth form...');
                 showAuthInterface();
+                // Clear forms safely
+                setTimeout(() => {
+                    const loginUsernameEl = document.getElementById('loginUsername');
+                    const loginPasswordEl = document.getElementById('loginPassword');
+                    if (loginUsernameEl) loginUsernameEl.value = '';
+                    if (loginPasswordEl) loginPasswordEl.value = '';
+                    clearError('loginError');
+                    clearError('registerError');
+                }, 50);
             }
         });
 

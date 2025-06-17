@@ -21,7 +21,11 @@ const Auth = {
     logout() {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
-        window.location.href = '/';
+        // Force reload to clear any cached states
+        window.location.href = '/?logout=1';
+        setTimeout(() => {
+            window.location.reload(true);
+        }, 100);
     },
 
     // Login function
