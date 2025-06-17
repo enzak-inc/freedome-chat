@@ -44,14 +44,28 @@
 
     <!-- Chat Container -->
     <div id="chatContainer" class="chat-container hidden">
-        <!-- Sidebar -->
-        <div class="sidebar">
+        <!-- Mobile Status Bar -->
+        <div class="mobile-status-bar">
+            <span id="statusTime"></span>
+        </div>
+        
+        <!-- Sidebar (Conversations) -->
+        <div id="sidebar" class="sidebar">
+            <!-- Conversations Header -->
+            <div class="conversations-header">
+                <span class="conversations-title">Messages</span>
+                <button class="edit-btn" onclick="toggleEditMode()">Edit</button>
+            </div>
+            
             <!-- User Info -->
             <div id="userInfo" class="user-info"></div>
             
             <!-- Search Bar -->
             <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Search users..." onkeyup="handleSearch(event)">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search" onkeyup="handleSearch(event)">
+                    <span class="search-icon">🔍</span>
+                </div>
                 <button onclick="addFriend()" class="add-friend-btn" title="Add Friend">+</button>
             </div>
             
@@ -63,22 +77,27 @@
         </div>
         
         <!-- Chat Area -->
-        <div id="chatArea" class="chat-area hidden">
+        <div id="chatArea" class="chat-area">
             <!-- Chat Header -->
-            <div id="chatHeader" class="chat-header"></div>
+            <div id="chatHeader" class="chat-header">
+                <button class="back-btn" onclick="backToConversations()">‹ Back</button>
+                <div class="chat-title">
+                    <div id="chatTitleName"></div>
+                    <div id="chatTitleUsername" class="chat-username"></div>
+                </div>
+            </div>
             
             <!-- Messages -->
             <div id="messages" class="messages"></div>
             
             <!-- Message Input -->
             <div class="message-input-container">
-                <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleMessageKeypress(event)" disabled>
-                <button onclick="sendMessage()" disabled id="sendBtn">Send</button>
+                <div class="message-input-wrapper">
+                    <input type="text" id="messageInput" placeholder="iMessage" onkeypress="handleMessageKeypress(event)" disabled>
+                </div>
+                <button onclick="sendMessage()" disabled id="sendBtn" class="send-btn">↑</button>
             </div>
         </div>
-        
-        <!-- Mobile Menu Toggle -->
-        <button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
     </div>
 
     <script src="/js/auth.js"></script>
@@ -264,10 +283,58 @@
             const sidebar = document.querySelector('.sidebar');
             sidebar.classList.toggle('mobile-open');
         }
+        
+        function backToConversations() {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const chatArea = document.getElementById('chatArea');
+                
+                sidebar.classList.remove('hidden-mobile');
+                chatArea.classList.remove('active-mobile');
+                
+                // Clear selected chat
+                selectedChat = null;
+                document.querySelectorAll('.friend-item').forEach(el => {
+                    el.classList.remove('active');
+                });
+            }
+        }
+        
+        function toggleEditMode() {
+            // Placeholder for edit mode functionality
+            console.log('Edit mode toggled');
+        }
+        
+        function updateStatusTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const statusTimeEl = document.getElementById('statusTime');
+            if (statusTimeEl) {
+                statusTimeEl.textContent = timeString;
+            }
+        }
+        
+        // Update time every minute
+        setInterval(updateStatusTime, 60000);
+        updateStatusTime();
 
         // Override logout to use Auth module
         function logout() {
             Auth.logout();
+        }
+        
+        // Handle mobile navigation
+        function selectChatMobile(username, displayName) {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const chatArea = document.getElementById('chatArea');
+                
+                sidebar.classList.add('hidden-mobile');
+                chatArea.classList.add('active-mobile');
+            }
+            
+            // Call the regular selectChat function
+            selectChat(username, displayName);
         }
     </script>
 </body>

@@ -149,19 +149,36 @@ function displayFriend(friend) {
         return;
     }
     
+    // Get last message for preview
+    const lastMessage = getLastMessage(username);
+    const previewText = lastMessage ? lastMessage.message : 'No messages yet';
+    const messageTime = lastMessage ? formatMessageTime(lastMessage.timestamp) : '';
+    
     const friendEl = document.createElement('div');
     friendEl.className = 'friend-item';
     friendEl.dataset.username = username;
     friendEl.innerHTML = `
         <div class="friend-avatar">${displayName[0].toUpperCase()}</div>
         <div class="friend-info">
-            <div class="friend-name">${displayName}</div>
+            <div class="friend-header">
+                <div class="friend-name">${displayName}</div>
+                <div class="friend-time">${messageTime}</div>
+            </div>
+            <div class="friend-preview">${escapeHtml(previewText)}</div>
             <div class="friend-username">${username}</div>
         </div>
-        <div class="friend-status ${isOnline ? 'online' : 'offline'}"></div>
+        <div class="friend-status ${isOnline ? '›' : ''}">${isOnline ? '›' : ''}</div>
     `;
     
-    friendEl.onclick = () => selectChat(username, displayName);
+    // Use mobile-aware select function
+    friendEl.onclick = () => {
+        if (window.innerWidth <= 768) {
+            selectChatMobile(username, displayName);
+        } else {
+            selectChat(username, displayName);
+        }
+    };
+    
     friendsList.appendChild(friendEl);
 }
 
@@ -181,15 +198,20 @@ function selectChat(username, displayName) {
     
     if (chatArea) {
         chatArea.classList.remove('hidden');
-        document.getElementById('chatHeader').innerHTML = `
-            <h3>${displayName} <span class="chat-username">${username}</span></h3>
-        `;
+        
+        // Update chat header with new structure
+        const chatTitleName = document.getElementById('chatTitleName');
+        const chatTitleUsername = document.getElementById('chatTitleUsername');
+        
+        if (chatTitleName) chatTitleName.textContent = displayName;
+        if (chatTitleUsername) chatTitleUsername.textContent = username;
     }
     
     // Enable message input
     if (messageInput && sendBtn) {
         messageInput.disabled = false;
         sendBtn.disabled = false;
+        messageInput.placeholder = 'iMessage';
     }
     
     // Load messages
@@ -227,8 +249,20 @@ function displayMessage(data) {
     const messagesEl = document.getElementById('messages');
     if (!messagesEl) return;
     
+    const isSent = data.sender === currentUser.username;
     const messageEl = document.createElement('div');
-    messageEl.className = `message ${data.sender === currentUser.username ? 'sent' : 'received'}`;
+    messageEl.className = `message ${isSent ? 'sent' : 'received'}`;
+    
+    // Check if this should be grouped with previous message
+    const lastMessage = messagesEl.lastElementChild;
+    const shouldGroup = lastMessage && 
+        lastMessage.classList.contains(isSent ? 'sent' : 'received') &&
+        !lastMessage.classList.contains('show-time');
+    
+    if (shouldGroup) {
+        messageEl.classList.add('consecutive');
+        lastMessage.classList.add('consecutive');
+    }
     
     const time = new Date(data.timestamp).toLocaleTimeString();
     
@@ -237,8 +271,16 @@ function displayMessage(data) {
         <div class="message-time">${time}</div>
     `;
     
+    // Show time on tap (mobile) or after certain interval
+    messageEl.addEventListener('click', () => {
+        messageEl.classList.toggle('show-time');
+    });
+    
     messagesEl.appendChild(messageEl);
     messagesEl.scrollTop = messagesEl.scrollHeight;
+    
+    // Update friend list preview
+    updateFriendPreview(data);
 }
 
 // Add friend
@@ -287,6 +329,62 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function getLastMessage(username) {
+    if (!messages[username] || messages[username].length === 0) {
+        return null;
+    }
+    return messages[username][messages[username].length - 1];
+}
+
+function formatMessageTime(timestamp) {
+    const now = new Date();
+    const messageDate = new Date(timestamp);
+    const diffMs = now - messageDate;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+        // Today - show time
+        return messageDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    } else if (diffDays === 1) {
+        // Yesterday
+        return 'Yesterday';
+    } else if (diffDays < 7) {
+        // This week - show day
+        return messageDate.toLocaleDateString([], {weekday: 'short'});
+    } else {
+        // Older - show date
+        return messageDate.toLocaleDateString([], {month: 'short', day: 'numeric'});
+    }
+}
+
+function updateFriendPreview(messageData) {
+    // Determine which user this chat is with
+    const chatUsername = messageData.sender === currentUser.username ? 
+        messageData.recipientUsername : messageData.sender;
+    
+    const friendEl = document.querySelector(`[data-username="${chatUsername}"]`);
+    if (friendEl) {
+        const previewEl = friendEl.querySelector('.friend-preview');
+        const timeEl = friendEl.querySelector('.friend-time');
+        
+        if (previewEl) {
+            const prefix = messageData.sender === currentUser.username ? 'You: ' : '';
+            previewEl.textContent = prefix + messageData.message;
+        }
+        
+        if (timeEl) {
+            timeEl.textContent = formatMessageTime(messageData.timestamp);
+        }
+        
+        // Move to top of list
+        const friendsList = document.getElementById('friendsList');
+        if (friendsList && friendEl.parentNode === friendsList) {
+            friendsList.removeChild(friendEl);
+            friendsList.insertBefore(friendEl, friendsList.firstChild);
+        }
+    }
+}
+
 function showNotification(message) {
     // Simple notification for now
     console.log('Notification:', message);
@@ -327,4 +425,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (Auth.isLoggedIn()) {
         initChat();
     }
+    
+    // Handle window resize for mobile/desktop transitions
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && selectedChat) {
+            // Desktop view - ensure chat area is visible
+            const chatArea = document.getElementById('chatArea');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (chatArea) chatArea.classList.remove('active-mobile');
+            if (sidebar) sidebar.classList.remove('hidden-mobile');
+        }
+    });
 });
