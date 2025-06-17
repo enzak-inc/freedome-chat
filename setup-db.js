@@ -71,10 +71,16 @@ async function setupDatabase() {
         const [tables] = await connection.execute('SHOW TABLES');
         
         console.log('\n📋 Created tables:');
-        tables.forEach(table => {
-            const tableName = Object.values(table)[0];
-            console.log(`  ✓ ${tableName}`);
-        });
+        if (tables.length === 0) {
+            console.log('  ⚠️  No tables found! Check for errors above.');
+        } else {
+            tables.forEach(table => {
+                const tableName = Object.values(table)[0];
+                console.log(`  ✓ ${tableName}`);
+            });
+        }
+        
+        console.log(`\n📊 Total tables: ${tables.length}`);
         
     } catch (error) {
         console.error('❌ Database setup failed:', error.message);
