@@ -115,11 +115,23 @@ function setupSocketListeners() {
 // Load friends list
 async function loadFriends() {
     try {
-        // For now, use the friends from user data
-        friends = currentUser.friends || [];
+        console.log('Loading friends from server for user:', currentUser.userId);
+        
+        // Fetch friends from server API
+        const response = await fetch(`/api/friends/${currentUser.userId}`);
+        if (response.ok) {
+            friends = await response.json();
+            console.log('Loaded friends from server:', friends);
+        } else {
+            console.error('Failed to load friends from server');
+            friends = [];
+        }
+        
         displayFriendsList();
     } catch (error) {
         console.error('Error loading friends:', error);
+        friends = [];
+        displayFriendsList();
     }
 }
 
@@ -613,7 +625,9 @@ async function loadMessages(username) {
         }
         
         // Load message history from server
-        const response = await fetch(`/api/messages/private/${currentUser.userId}/${recipient.user_id || recipient.userId}`);
+        const recipientId = recipient.user_id || recipient.userId;
+        console.log('Loading messages between:', currentUser.userId, 'and', recipientId);
+        const response = await fetch(`/api/messages/private/${currentUser.userId}/${recipientId}`);
         if (response.ok) {
             const serverMessages = await response.json();
             console.log('Loaded messages from server:', serverMessages);
