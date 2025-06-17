@@ -21,6 +21,73 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* RTL Support for Farsi */
+html[dir="rtl"] body {
+    font-family: Tahoma, 'Segoe UI', 'Iranian Sans', 'B Yekan', sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+
+html[dir="rtl"] .app-header {
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .menu-btn {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+html[dir="rtl"] .new-chat-btn {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+html[dir="rtl"] .conversation-content {
+    text-align: right;
+}
+
+html[dir="rtl"] .message {
+    text-align: right;
+}
+
+html[dir="rtl"] .message.sent {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+html[dir="rtl"] .message.received {
+    margin-right: 0;
+    margin-left: auto;
+}
+
+html[dir="rtl"] .chat-header {
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .back-btn {
+    transform: scaleX(-1);
+}
+
+html[dir="rtl"] .new-chat-header {
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .menu-items {
+    text-align: right;
+}
+
+html[dir="rtl"] .conversation-header-info {
+    text-align: right;
+}
+
+html[dir="rtl"] .search-input-container {
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .message-input-container {
+    flex-direction: row-reverse;
+}
+
 /* Light Theme */
 body.light-theme {
     background: #f5f5f5;

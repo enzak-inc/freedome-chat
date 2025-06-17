@@ -60,7 +60,7 @@ function setupSocketListeners() {
             }
             
             // Show notification for new messages from others
-            showNotification(`New message from ${data.senderName}`, () => {
+            showNotification(`پیام جدید از ${data.senderName}`, () => {
                 // Navigate to the sender's chat
                 const sender = friends.find(f => f.username === data.sender);
                 if (sender) {
@@ -88,7 +88,7 @@ function setupSocketListeners() {
         console.log('Friend added event received:', data);
         friends.push(data);
         displayFriend(data);
-        showNotification(`${data.displayName} is now your friend!`);
+        showNotification(`${data.displayName} اکنون دوست شماست!`);
         
         // Also update the currentUser friends list
         if (currentUser.friends) {
@@ -102,13 +102,13 @@ function setupSocketListeners() {
     });
 
     socket.on('friend_request_accepted', (data) => {
-        showNotification(`${data.displayName} accepted your friend request!`);
+        showNotification(`${data.displayName} درخواست دوستی شما را پذیرفت!`);
         loadFriends();
     });
 
     socket.on('error', (data) => {
         console.log('Socket error received:', data);
-        showNotification(`Error: ${data.message}`);
+        showNotification(`خطا: ${data.message}`);
     });
 }
 
@@ -131,7 +131,7 @@ async function displayFriendsList() {
     friendsList.innerHTML = '';
     
     if (friends.length === 0) {
-        friendsList.innerHTML = '<p class="no-friends">No conversations yet. Add friends to start chatting!</p>';
+        friendsList.innerHTML = '<p class="no-friends">هنوز مکالمه‌ای ندارید. برای شروع چت، دوستان اضافه کنید!</p>';
         return;
     }
     
@@ -178,16 +178,16 @@ function displayFriend(friend, conversationData = null) {
     }
     
     // Use conversation data if available, otherwise fall back to local cache
-    let previewText = 'No messages yet';
+    let previewText = 'هنوز پیامی نیست';
     let messageTime = '';
     
     if (conversationData) {
-        previewText = conversationData.last_message || 'No messages yet';
+        previewText = conversationData.last_message || 'هنوز پیامی نیست';
         messageTime = conversationData.last_message_time ? formatMessageTime(conversationData.last_message_time) : '';
     } else {
         // Fallback to local cache
         const lastMessage = getLastMessage(username);
-        previewText = lastMessage ? lastMessage.message : 'No messages yet';
+        previewText = lastMessage ? lastMessage.message : 'هنوز پیامی نیست';
         messageTime = lastMessage ? formatMessageTime(lastMessage.timestamp) : '';
     }
     
@@ -365,8 +365,8 @@ function displayNewChatSearchResults(users) {
         resultsContainer.innerHTML = `
             <div class="no-results-state">
                 <div class="no-results-icon">🔍</div>
-                <h3>No users found</h3>
-                <p>Try searching with a different username</p>
+                <h3>کاربری یافت نشد</h3>
+                <p>با نام کاربری متفاوتی جستجو کنید</p>
             </div>
         `;
         return;
@@ -384,7 +384,7 @@ function displayNewChatSearchResults(users) {
                 <div class="result-username">${user.username}</div>
             </div>
             <button class="result-action" onclick="addUserAsFriend('${user.username}', '${user.display_name}')">
-                Add Friend
+افزودن دوست
             </button>
         `;
         resultsContainer.appendChild(userEl);
@@ -409,8 +409,8 @@ function showNewChatError() {
     resultsContainer.innerHTML = `
         <div class="no-results-state">
             <div class="no-results-icon">⚠️</div>
-            <h3>Search failed</h3>
-            <p>Please check your connection and try again</p>
+            <h3>جستجو ناموفق</h3>
+            <p>لطفاً اتصال خود را بررسی و دوباره تلاش کنید</p>
         </div>
     `;
 }
@@ -421,7 +421,7 @@ function addUserAsFriend(username, displayName) {
         socket.emit('add_friend', { friendUsername: username });
         
         // Show feedback
-        showNotification(`Friend request sent to ${displayName}`);
+        showNotification(`درخواست دوستی به ${displayName} ارسال شد`);
         
         // Go back to conversations after a moment
         setTimeout(() => {
@@ -466,7 +466,7 @@ function formatMessageTime(timestamp) {
         return messageDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     } else if (diffDays === 1) {
         // Yesterday
-        return 'Yesterday';
+        return 'دیروز';
     } else if (diffDays < 7) {
         // This week - show day
         return messageDate.toLocaleDateString([], {weekday: 'short'});
@@ -497,9 +497,9 @@ function addDateSeparator(messagesEl, messageDate) {
     
     let dateLabel;
     if (messageDay.getTime() === today.getTime()) {
-        dateLabel = 'Today';
+        dateLabel = 'امروز';
     } else if (messageDay.getTime() === yesterday.getTime()) {
-        dateLabel = 'Yesterday';
+        dateLabel = 'دیروز';
     } else {
         dateLabel = messageDate.toLocaleDateString([], {
             weekday: 'long',

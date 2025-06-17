@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Free Iran - Secure Local Messaging</title>
+    <title>ایران آزاد - پیام‌رسان محلی امن</title>
     <link rel="stylesheet" href="/css/styles.css">
     <script src="/socket.io/socket.io.js"></script>
     <style>
@@ -47,32 +47,32 @@
     <!-- Login/Register Container -->
     <div id="authContainer" class="auth-container">
         <div class="auth-box">
-            <h1>Free Iran</h1>
-            <p class="tagline">Secure Local Messaging</p>
+            <h1>ایران آزاد</h1>
+            <p class="tagline">پیام‌رسان محلی امن</p>
             
             <!-- Login Form -->
             <div id="loginForm" class="auth-form">
-                <h2>Login</h2>
+                <h2>ورود</h2>
                 <form onsubmit="handleLogin(event)">
-                    <input type="text" id="loginUsername" placeholder="@username" required value="@">
-                    <input type="password" id="loginPassword" placeholder="Password" required>
-                    <button type="submit">Login</button>
+                    <input type="text" id="loginUsername" placeholder="@نام‌کاربری" required value="@">
+                    <input type="password" id="loginPassword" placeholder="رمز عبور" required>
+                    <button type="submit">ورود</button>
                 </form>
-                <p>Don't have an account? <a href="#" onclick="showRegister()">Register</a></p>
+                <p>حساب کاربری ندارید؟ <a href="#" onclick="showRegister()">ثبت‌نام</a></p>
                 <div id="loginError" class="error"></div>
             </div>
             
             <!-- Register Form -->
             <div id="registerForm" class="auth-form hidden">
-                <h2>Register</h2>
+                <h2>ثبت‌نام</h2>
                 <form onsubmit="handleRegister(event)">
-                    <input type="text" id="regUsername" placeholder="@username" required pattern="@[a-zA-Z0-9_]{3,}" value="@">
-                    <input type="text" id="regDisplayName" placeholder="Display Name" required>
-                    <input type="password" id="regPassword" placeholder="Password (8+ chars)" required minlength="8">
-                    <div class="password-hint">Password must be 8+ characters with uppercase, lowercase, number, and special character</div>
-                    <button type="submit">Register</button>
+                    <input type="text" id="regUsername" placeholder="@نام‌کاربری" required pattern="@[a-zA-Z0-9_]{3,}" value="@">
+                    <input type="text" id="regDisplayName" placeholder="نام نمایشی" required>
+                    <input type="password" id="regPassword" placeholder="رمز عبور (حداقل ۸ کاراکتر)" required minlength="8">
+                    <div class="password-hint">رمز عبور باید حداقل ۸ کاراکتر باشد و شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه</div>
+                    <button type="submit">ثبت‌نام</button>
                 </form>
-                <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+                <p>قبلاً حساب کاربری دارید؟ <a href="#" onclick="showLogin()">ورود</a></p>
                 <div id="registerError" class="error"></div>
             </div>
         </div>
@@ -131,13 +131,13 @@
             <!-- Header -->
             <div class="app-header">
                 <button class="menu-btn" onclick="toggleMenu()">☰</button>
-                <h1 class="app-title">Free Iran</h1>
-                <button class="new-chat-btn" onclick="addFriend()">+ New</button>
+                <h1 class="app-title">ایران آزاد</h1>
+                <button class="new-chat-btn" onclick="addFriend()">+ جدید</button>
             </div>
             
             <!-- Search Bar -->
             <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Search conversations..." onkeyup="handleSearch(event)">
+                <input type="text" id="searchInput" placeholder="جستجوی مکالمات..." onkeyup="handleSearch(event)">
             </div>
             
             <!-- Conversations List -->
@@ -165,7 +165,7 @@
             
             <!-- Message Input -->
             <div class="message-input-container">
-                <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="handleMessageKeypress(event)" disabled>
+                <input type="text" id="messageInput" placeholder="پیام خود را بنویسید..." onkeypress="handleMessageKeypress(event)" disabled>
                 <button onclick="sendMessage()" disabled id="sendBtn" class="send-btn">↑</button>
             </div>
         </div>
@@ -175,14 +175,14 @@
             <!-- New Chat Header -->
             <div class="new-chat-header">
                 <button class="back-btn" onclick="backToConversations()">‹</button>
-                <h2 class="new-chat-title">New Chat</h2>
+                <h2 class="new-chat-title">گفتگوی جدید</h2>
             </div>
             
             <!-- Search Section -->
             <div class="new-chat-search">
                 <div class="search-input-container">
                     <span class="search-icon">🔍</span>
-                    <input type="text" id="newChatSearchInput" placeholder="Search by username (e.g., @username)" onkeyup="handleNewChatSearch(event)" autocomplete="off">
+                    <input type="text" id="newChatSearchInput" placeholder="جستجو با نام کاربری (مثال: @نام‌کاربری)" onkeyup="handleNewChatSearch(event)" autocomplete="off">
                     <button class="clear-search-btn hidden" onclick="clearNewChatSearch()">×</button>
                 </div>
             </div>
@@ -192,8 +192,8 @@
                 <div id="newChatSearchResults" class="search-results-list">
                     <div class="search-placeholder">
                         <div class="placeholder-icon">👋</div>
-                        <h3>Find your friends</h3>
-                        <p>Search for users by their username to start a conversation</p>
+                        <h3>دوستان خود را پیدا کنید</h3>
+                        <p>برای شروع گفتگو، کاربران را با نام کاربری‌شان جستجو کنید</p>
                     </div>
                 </div>
             </div>
@@ -201,7 +201,7 @@
             <!-- Loading State -->
             <div id="newChatLoading" class="loading-state hidden">
                 <div class="loading-spinner"></div>
-                <p>Searching...</p>
+                <p>در حال جستجو...</p>
             </div>
         </div>
     </div>
@@ -394,7 +394,7 @@
             resultsEl.innerHTML = '';
             
             if (users.length === 0) {
-                resultsEl.innerHTML = '<p class="no-results">No users found</p>';
+                resultsEl.innerHTML = '<p class="no-results">کاربری یافت نشد</p>';
             } else {
                 users.forEach(user => {
                     const userEl = document.createElement('div');
@@ -404,7 +404,7 @@
                             <div class="user-name">${user.display_name}</div>
                             <div class="user-username">${user.username}</div>
                         </div>
-                        <button onclick="addFriendByUsername('${user.username}')" class="add-btn">Add</button>
+                        <button onclick="addFriendByUsername('${user.username}')" class="add-btn">افزودن</button>
                     `;
                     resultsEl.appendChild(userEl);
                 });
@@ -481,7 +481,7 @@
             // Update theme text
             const themeText = document.getElementById('themeText');
             if (themeText) {
-                themeText.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+                themeText.textContent = isDarkMode ? 'حالت روشن' : 'حالت تیره';
             }
             
             closeMenu();
@@ -489,17 +489,17 @@
 
         function editProfile() {
             closeMenu();
-            alert('Profile editing coming soon!');
+            alert('ویرایش پروفایل به زودی!');
         }
 
         function showSettings() {
             closeMenu();
-            alert('Settings coming soon!');
+            alert('تنظیمات به زودی!');
         }
 
         function showAbout() {
             closeMenu();
-            alert('Free Iran v1.0\nSecure Local Messaging\nBuilt with Socket.IO');
+            alert('ایران آزاد نسخه ۱.۰\nپیام‌رسان محلی امن\nساخته شده با Socket.IO');
         }
 
         function logout() {
@@ -531,7 +531,7 @@
             if (messageInput && sendBtn) {
                 messageInput.disabled = false;
                 sendBtn.disabled = false;
-                messageInput.placeholder = 'Type your message...';
+                messageInput.placeholder = 'پیام خود را بنویسید...';
             }
             
             // Clear unread indicator when chat is selected
