@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Iran Chat - Secure Local Messaging</title>
     <link rel="stylesheet" href="/css/styles.css">
     <script src="/socket.io/socket.io.js"></script>
@@ -42,60 +42,82 @@
         </div>
     </div>
 
-    <!-- Chat Container -->
+    <!-- Main Chat Container -->
     <div id="chatContainer" class="chat-container hidden">
-        <!-- Mobile Status Bar -->
-        <div class="mobile-status-bar">
-            <span id="statusTime"></span>
-        </div>
-        
-        <!-- Sidebar (Conversations) -->
-        <div id="sidebar" class="sidebar">
-            <!-- Conversations Header -->
-            <div class="conversations-header">
-                <span class="conversations-title">Messages</span>
+        <!-- Conversations View -->
+        <div id="conversationsView" class="conversations-view active">
+            <!-- iOS Status Bar -->
+            <div class="ios-status-bar">
+                <span class="status-time" id="statusTime"></span>
+                <div class="status-icons">
+                    <span class="signal">•••••</span>
+                    <span class="wifi">📶</span>
+                    <span class="battery">🔋</span>
+                </div>
+            </div>
+            
+            <!-- Navigation Bar -->
+            <div class="ios-nav-bar">
+                <h1 class="nav-title">Messages</h1>
                 <button class="edit-btn" onclick="toggleEditMode()">Edit</button>
             </div>
             
-            <!-- User Info -->
-            <div id="userInfo" class="user-info"></div>
-            
             <!-- Search Bar -->
-            <div class="search-bar">
-                <div class="search-container">
-                    <input type="text" id="searchInput" placeholder="Search" onkeyup="handleSearch(event)">
+            <div class="ios-search-container">
+                <div class="ios-search-bar">
                     <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Search" onkeyup="handleSearch(event)">
+                    <button class="cancel-search hidden" onclick="cancelSearch()">Cancel</button>
                 </div>
-                <button onclick="addFriend()" class="add-friend-btn" title="Add Friend">+</button>
+                <button class="compose-new-btn" onclick="addFriend()" title="New Message">
+                    <span style="font-size: 20px;">✏️</span>
+                </button>
             </div>
             
-            <!-- Friends List -->
-            <div id="friendsList" class="friends-list"></div>
+            <!-- Conversations List -->
+            <div class="conversations-scroll">
+                <div id="friendsList" class="ios-conversations-list"></div>
+            </div>
             
-            <!-- Search Results -->
-            <div id="searchResults" class="search-results hidden"></div>
+            <!-- Search Results Overlay -->
+            <div id="searchResults" class="search-results-overlay hidden"></div>
         </div>
         
-        <!-- Chat Area -->
-        <div id="chatArea" class="chat-area">
-            <!-- Chat Header -->
-            <div id="chatHeader" class="chat-header">
-                <button class="back-btn" onclick="backToConversations()">‹ Back</button>
-                <div class="chat-title">
-                    <div id="chatTitleName"></div>
-                    <div id="chatTitleUsername" class="chat-username"></div>
+        <!-- Chat View -->
+        <div id="chatView" class="chat-view">
+            <!-- iOS Status Bar -->
+            <div class="ios-status-bar">
+                <span class="status-time" id="chatStatusTime"></span>
+                <div class="status-icons">
+                    <span class="signal">•••••</span>
+                    <span class="wifi">📶</span>
+                    <span class="battery">🔋</span>
                 </div>
             </div>
             
-            <!-- Messages -->
-            <div id="messages" class="messages"></div>
+            <!-- Chat Navigation Bar -->
+            <div class="ios-chat-nav">
+                <button class="ios-back-btn" onclick="backToConversations()">
+                    <span class="back-arrow">‹</span>
+                    <span class="back-text">Messages</span>
+                </button>
+                <div class="chat-nav-center">
+                    <div id="chatTitleName" class="chat-contact-name"></div>
+                    <div id="chatTitleUsername" class="chat-contact-username"></div>
+                </div>
+                <button class="chat-info-btn">ⓘ</button>
+            </div>
             
-            <!-- Message Input -->
-            <div class="message-input-container">
-                <div class="message-input-wrapper">
+            <!-- Messages Container -->
+            <div id="messages" class="ios-messages-container"></div>
+            
+            <!-- Message Input Bar -->
+            <div class="ios-message-input-bar">
+                <button class="attach-btn">+</button>
+                <div class="ios-input-wrapper">
                     <input type="text" id="messageInput" placeholder="iMessage" onkeypress="handleMessageKeypress(event)" disabled>
                 </div>
-                <button onclick="sendMessage()" disabled id="sendBtn" class="send-btn">↑</button>
+                <button onclick="sendMessage()" disabled id="sendBtn" class="ios-send-btn">↑</button>
             </div>
         </div>
     </div>
@@ -215,6 +237,7 @@
         function showChatInterface() {
             document.getElementById('authContainer').classList.add('hidden');
             document.getElementById('chatContainer').classList.remove('hidden');
+            updateUserTabInfo();
         }
 
         function showError(elementId, message) {
@@ -240,11 +263,23 @@
 
         function handleSearch(event) {
             const query = event.target.value;
-            if (query.length > 2) {
-                searchUsers(query);
+            const cancelBtn = document.querySelector('.cancel-search');
+            
+            if (query.length > 0) {
+                cancelBtn.classList.remove('hidden');
+                if (query.length > 2) {
+                    searchUsers(query);
+                }
             } else {
+                cancelBtn.classList.add('hidden');
                 document.getElementById('searchResults').classList.add('hidden');
             }
+        }
+
+        function cancelSearch() {
+            document.getElementById('searchInput').value = '';
+            document.querySelector('.cancel-search').classList.add('hidden');
+            document.getElementById('searchResults').classList.add('hidden');
         }
 
         function displaySearchResults(users) {
@@ -274,68 +309,96 @@
         function addFriendByUsername(username) {
             if (socket) {
                 socket.emit('add_friend', { friendUsername: username });
-                document.getElementById('searchResults').classList.add('hidden');
-                document.getElementById('searchInput').value = '';
+                cancelSearch();
             }
         }
 
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.classList.toggle('mobile-open');
-        }
-        
         function backToConversations() {
-            if (window.innerWidth <= 768) {
-                const sidebar = document.getElementById('sidebar');
-                const chatArea = document.getElementById('chatArea');
-                
-                sidebar.classList.remove('hidden-mobile');
-                chatArea.classList.remove('active-mobile');
-                
-                // Clear selected chat
-                selectedChat = null;
-                document.querySelectorAll('.friend-item').forEach(el => {
-                    el.classList.remove('active');
-                });
-            }
+            const conversationsView = document.getElementById('conversationsView');
+            const chatView = document.getElementById('chatView');
+            
+            conversationsView.classList.add('active');
+            chatView.classList.remove('active');
+            
+            // Clear selected chat
+            selectedChat = null;
+            document.querySelectorAll('.conversation-item').forEach(el => {
+                el.classList.remove('active');
+            });
         }
         
         function toggleEditMode() {
-            // Placeholder for edit mode functionality
-            console.log('Edit mode toggled');
+            // Create a simple action sheet for logout
+            if (confirm('Do you want to logout?')) {
+                logout();
+            }
         }
         
         function updateStatusTime() {
             const now = new Date();
             const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
             const statusTimeEl = document.getElementById('statusTime');
-            if (statusTimeEl) {
-                statusTimeEl.textContent = timeString;
-            }
+            const chatStatusTimeEl = document.getElementById('chatStatusTime');
+            
+            if (statusTimeEl) statusTimeEl.textContent = timeString;
+            if (chatStatusTimeEl) chatStatusTimeEl.textContent = timeString;
         }
         
         // Update time every minute
         setInterval(updateStatusTime, 60000);
         updateStatusTime();
 
+        function updateUserTabInfo() {
+            if (currentUser) {
+                const avatarEl = document.getElementById('userAvatar');
+                const nameEl = document.getElementById('userName');
+                
+                if (avatarEl) {
+                    avatarEl.textContent = currentUser.displayName[0].toUpperCase();
+                }
+                if (nameEl) {
+                    nameEl.textContent = currentUser.displayName;
+                }
+            }
+        }
+
         // Override logout to use Auth module
         function logout() {
             Auth.logout();
         }
         
-        // Handle mobile navigation
-        function selectChatMobile(username, displayName) {
-            if (window.innerWidth <= 768) {
-                const sidebar = document.getElementById('sidebar');
-                const chatArea = document.getElementById('chatArea');
-                
-                sidebar.classList.add('hidden-mobile');
-                chatArea.classList.add('active-mobile');
+        // Override selectChat for iOS navigation
+        window.selectChat = function(username, displayName) {
+            selectedChat = username;
+            
+            // Switch views
+            const conversationsView = document.getElementById('conversationsView');
+            const chatView = document.getElementById('chatView');
+            
+            conversationsView.classList.remove('active');
+            chatView.classList.add('active');
+            
+            // Update chat header
+            const chatTitleName = document.getElementById('chatTitleName');
+            const chatTitleUsername = document.getElementById('chatTitleUsername');
+            
+            if (chatTitleName) chatTitleName.textContent = displayName;
+            if (chatTitleUsername) chatTitleUsername.textContent = username;
+            
+            // Enable message input
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            if (messageInput && sendBtn) {
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                messageInput.placeholder = 'iMessage';
             }
             
-            // Call the regular selectChat function
-            selectChat(username, displayName);
-        }
+            // Load messages
+            loadMessages(username);
+        };
     </script>
 </body>
 </html>

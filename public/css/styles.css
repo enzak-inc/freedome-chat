@@ -21,15 +21,7 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Prevent scrolling on the body */
-body {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
-
-/* Auth Container - Keep existing styles */
+/* Auth Container */
 .auth-container {
     position: fixed;
     top: 0;
@@ -143,7 +135,7 @@ body {
 /* iOS Status Bar */
 .ios-status-bar {
     height: 44px;
-    background: #f2f2f7;
+    background: #000;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -151,12 +143,12 @@ body {
     padding-top: env(safe-area-inset-top, 0);
     position: relative;
     z-index: 100;
+    color: #fff;
 }
 
 .status-time {
     font-size: 14px;
     font-weight: 600;
-    color: #000;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -175,8 +167,8 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    bottom: 60px;
-    background: #f2f2f7;
+    bottom: 0;
+    background: #000;
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     display: flex;
@@ -191,24 +183,25 @@ body {
 /* iOS Navigation Bar */
 .ios-nav-bar {
     height: 44px;
-    background: #f2f2f7;
+    background: #000;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
-    border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
 }
 
 .nav-title {
-    font-size: 17px;
-    font-weight: 600;
-    color: #000;
+    font-size: 34px;
+    font-weight: 700;
+    color: #fff;
     position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
-.edit-btn, .compose-btn {
+.edit-btn {
     font-size: 17px;
     color: #007aff;
     background: none;
@@ -216,26 +209,46 @@ body {
     cursor: pointer;
     font-weight: 400;
     padding: 0;
+    position: absolute;
+    right: 16px;
     z-index: 1;
 }
 
 .compose-btn {
-    font-size: 20px;
+    display: none;
 }
 
 /* iOS Search Container */
 .ios-search-container {
     padding: 8px 16px;
-    background: #f2f2f7;
+    background: #000;
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 .ios-search-bar {
+    flex: 1;
     display: flex;
     align-items: center;
     background: rgba(142, 142, 147, 0.12);
     border-radius: 10px;
     padding: 8px 12px;
     position: relative;
+}
+
+.compose-new-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: none;
+    border: none;
+    color: #007aff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .search-icon {
@@ -250,7 +263,7 @@ body {
     border: none;
     outline: none;
     font-size: 17px;
-    color: #000;
+    color: #fff;
     font-weight: 400;
 }
 
@@ -272,24 +285,22 @@ body {
 .conversations-scroll {
     flex: 1;
     overflow-y: auto;
-    background: #fff;
+    background: #000;
     -webkit-overflow-scrolling: touch;
 }
 
 /* iOS Conversations List */
 .ios-conversations-list {
-    background: #fff;
+    background: #000;
 }
 
 .conversation-item {
     display: flex;
     align-items: center;
     padding: 12px 16px;
-    background: #fff;
-    border-bottom: 0.5px solid #c6c6c8;
+    background: #000;
     cursor: pointer;
     position: relative;
-    margin-left: 16px;
 }
 
 .conversation-item::after {
@@ -299,7 +310,7 @@ body {
     bottom: 0;
     left: 74px;
     height: 0.5px;
-    background: #c6c6c8;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .conversation-item:last-child::after {
@@ -310,7 +321,7 @@ body {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #007aff, #5856d6);
+    background: #636366;
     color: white;
     display: flex;
     align-items: center;
@@ -336,7 +347,7 @@ body {
 .conversation-name {
     font-size: 16px;
     font-weight: 600;
-    color: #000;
+    color: #fff;
     line-height: 1.2;
 }
 
@@ -361,7 +372,7 @@ body {
     right: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: #c7c7cc;
+    color: #48484a;
     font-size: 14px;
 }
 
@@ -378,8 +389,8 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    bottom: 60px;
-    background: #fff;
+    bottom: 0;
+    background: #000;
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     display: flex;
@@ -394,12 +405,12 @@ body {
 /* iOS Chat Navigation */
 .ios-chat-nav {
     height: 44px;
-    background: #f2f2f7;
+    background: #000;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 8px;
-    border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
     position: relative;
 }
 
@@ -436,7 +447,7 @@ body {
 .chat-contact-name {
     font-size: 17px;
     font-weight: 600;
-    color: #000;
+    color: #fff;
     line-height: 1.2;
 }
 
@@ -461,7 +472,7 @@ body {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 8px 16px 20px;
-    background: #fff;
+    background: #000;
     display: flex;
     flex-direction: column;
 }
@@ -499,8 +510,8 @@ body {
 }
 
 .message.received .message-content {
-    background: #e5e5ea;
-    color: #000;
+    background: #1c1c1e;
+    color: #fff;
     border-bottom-left-radius: 4px;
 }
 
@@ -541,8 +552,8 @@ body {
 .ios-message-input-bar {
     padding: 8px 8px;
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0));
-    background: #f2f2f7;
-    border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+    background: #000;
+    border-top: 0.5px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: flex-end;
     gap: 8px;
@@ -566,8 +577,8 @@ body {
 
 .ios-input-wrapper {
     flex: 1;
-    background: #fff;
-    border: 0.5px solid #c6c6c8;
+    background: rgba(142, 142, 147, 0.12);
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
     border-radius: 18px;
     min-height: 34px;
     max-height: 100px;
@@ -582,6 +593,7 @@ body {
     outline: none;
     font-size: 17px;
     background: transparent;
+    color: #fff;
     min-height: 20px;
     line-height: 20px;
 }
@@ -608,58 +620,13 @@ body {
 }
 
 .ios-send-btn:disabled {
-    background: #c7c7cc;
+    background: #48484a;
     cursor: not-allowed;
 }
 
 /* iOS Tab Bar */
 .ios-tab-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    background: #f2f2f7;
-    border-top: 0.5px solid rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    z-index: 100;
-}
-
-.tab-user-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.tab-avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.tab-username {
-    font-size: 14px;
-    color: #000;
-    font-weight: 500;
-}
-
-.tab-logout {
-    background: none;
-    border: none;
-    color: #ff3b30;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 4px 8px;
+    display: none;
 }
 
 /* Search Results Overlay */
@@ -669,7 +636,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: #fff;
+    background: #000;
     z-index: 50;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -680,8 +647,8 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 12px 16px;
-    background: #fff;
-    border-bottom: 0.5px solid #c6c6c8;
+    background: #000;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
 }
 
 .user-info {
@@ -691,7 +658,7 @@ body {
 .user-name {
     font-size: 16px;
     font-weight: 500;
-    color: #000;
+    color: #fff;
     margin-bottom: 2px;
 }
 
@@ -724,8 +691,8 @@ body {
     top: 60px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
+    background: rgba(255, 255, 255, 0.9);
+    color: #000;
     padding: 12px 20px;
     border-radius: 20px;
     z-index: 1000;
@@ -733,6 +700,7 @@ body {
     max-width: 80%;
     text-align: center;
     font-size: 14px;
+    backdrop-filter: blur(10px);
 }
 
 @keyframes slideDown {
@@ -756,17 +724,94 @@ body {
     .chat-container {
         max-width: 414px;
         margin: 0 auto;
-        border-left: 1px solid #e1e5e9;
-        border-right: 1px solid #e1e5e9;
+        border-left: 1px solid #333;
+        border-right: 1px solid #333;
     }
-}
-
-/* Ensure no horizontal scrolling */
-@media (max-width: 768px) {
-    html, body {
-        width: 100%;
-        overflow-x: hidden;
-        position: relative;
+    
+    .ios-status-bar {
+        background: #f2f2f7;
+        color: #000;
+    }
+    
+    .conversations-view,
+    .chat-view {
+        background: #f2f2f7;
+    }
+    
+    .ios-nav-bar,
+    .ios-chat-nav {
+        background: #f2f2f7;
+        border-bottom-color: rgba(0, 0, 0, 0.1);
+    }
+    
+    .nav-title,
+    .chat-contact-name {
+        color: #000;
+    }
+    
+    .ios-search-container {
+        background: #f2f2f7;
+    }
+    
+    .ios-search-bar input {
+        color: #000;
+    }
+    
+    .conversations-scroll,
+    .ios-conversations-list {
+        background: #fff;
+    }
+    
+    .conversation-item {
+        background: #fff;
+    }
+    
+    .conversation-item::after {
+        background: #c6c6c8;
+    }
+    
+    .conversation-name {
+        color: #000;
+    }
+    
+    .conversation-chevron {
+        color: #c7c7cc;
+    }
+    
+    .ios-messages-container {
+        background: #fff;
+    }
+    
+    .message.received .message-content {
+        background: #e5e5ea;
+        color: #000;
+    }
+    
+    .ios-message-input-bar {
+        background: #f2f2f7;
+        border-top-color: rgba(0, 0, 0, 0.1);
+    }
+    
+    .ios-input-wrapper {
+        background: #fff;
+        border-color: #c6c6c8;
+    }
+    
+    .ios-input-wrapper input {
+        color: #000;
+    }
+    
+    .search-results-overlay {
+        background: #fff;
+    }
+    
+    .search-result-item {
+        background: #fff;
+        border-bottom-color: #c6c6c8;
+    }
+    
+    .user-name {
+        color: #000;
     }
 }
 
@@ -775,5 +820,19 @@ body {
     .conversations-scroll,
     .ios-messages-container {
         -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Ensure proper layout on all devices */
+@media (max-width: 768px) {
+    html, body {
+        width: 100%;
+        overflow-x: hidden;
+        position: relative;
+    }
+    
+    /* Adjust navigation title for smaller screens */
+    .nav-title {
+        font-size: 28px;
     }
 }
