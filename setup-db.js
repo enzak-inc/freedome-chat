@@ -51,12 +51,18 @@ async function setupDatabase() {
         const allStatements = schema.split(';');
         console.log(`📋 Raw statements after split: ${allStatements.length}`);
         
+        console.log('📋 Raw statements before filtering:');
+        allStatements.forEach((stmt, i) => {
+            const trimmed = stmt.trim();
+            console.log(`${i + 1}: [${trimmed.length} chars] ${trimmed.substring(0, 100)}...`);
+        });
+        
         const statements = allStatements
             .map(stmt => stmt.trim())
             .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
         
-        console.log('📋 First few statements:');
-        statements.slice(0, 3).forEach((stmt, i) => {
+        console.log('📋 Statements after filtering:');
+        statements.forEach((stmt, i) => {
             console.log(`${i + 1}: ${stmt.substring(0, 100)}...`);
         });
         
