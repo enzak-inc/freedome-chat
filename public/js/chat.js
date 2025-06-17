@@ -5,6 +5,7 @@ let selectedChat = null;
 let friends = [];
 let messages = {};
 let unreadConversations = new Set();
+let lastMessageDate = null;
 
 // Initialize chat application
 function initChat() {
@@ -256,16 +257,25 @@ function displayMessage(data) {
     const messagesEl = document.getElementById('messages');
     if (!messagesEl) return;
     
+    const messageDate = new Date(data.timestamp);
+    const messageDateStr = messageDate.toDateString();
+    
+    // Add date separator if this is a different day than the last message
+    if (lastMessageDate !== messageDateStr) {
+        addDateSeparator(messagesEl, messageDate);
+        lastMessageDate = messageDateStr;
+    }
+    
     const isSent = data.sender === currentUser.username;
     const messageEl = document.createElement('div');
     messageEl.className = `message ${isSent ? 'sent' : 'received'}`;
     
-    const time = new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const formattedTime = formatMessageTimestamp(data.timestamp);
     
     messageEl.innerHTML = `
         <div class="message-content">${escapeHtml(data.message)}</div>
         <div class="message-info">
-            <div class="message-time">${time}</div>
+            <div class="message-time">${formattedTime}</div>
         </div>
     `;
     
@@ -466,6 +476,45 @@ function formatMessageTime(timestamp) {
     }
 }
 
+// Enhanced timestamp formatting for individual messages
+function formatMessageTimestamp(timestamp) {
+    const messageDate = new Date(timestamp);
+    
+    // Since we have date separators, just show the time for individual messages
+    return messageDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+
+// Add date separator
+function addDateSeparator(messagesEl, messageDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const messageDay = new Date(messageDate);
+    messageDay.setHours(0, 0, 0, 0);
+    
+    let dateLabel;
+    if (messageDay.getTime() === today.getTime()) {
+        dateLabel = 'Today';
+    } else if (messageDay.getTime() === yesterday.getTime()) {
+        dateLabel = 'Yesterday';
+    } else {
+        dateLabel = messageDate.toLocaleDateString([], {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: messageDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+        });
+    }
+    
+    const separatorEl = document.createElement('div');
+    separatorEl.className = 'date-separator';
+    separatorEl.innerHTML = `<span class="date-text">${dateLabel}</span>`;
+    messagesEl.appendChild(separatorEl);
+}
+
 function updateConversationPreview(messageData) {
     // Determine which user this chat is with
     const chatUsername = messageData.sender === currentUser.username ? 
@@ -531,6 +580,7 @@ async function loadMessages(username) {
     if (!messagesEl) return;
     
     messagesEl.innerHTML = '';
+    lastMessageDate = null; // Reset date tracking
     
     try {
         // First check if we have the recipient's user ID

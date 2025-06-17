@@ -594,6 +594,54 @@ body.light-theme .unread-indicator {
     flex-direction: column;
 }
 
+/* Date Separator */
+.date-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 24px 0 16px;
+    position: relative;
+}
+
+.date-separator::before {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin-right: 16px;
+}
+
+.date-separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin-left: 16px;
+}
+
+.date-text {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 6px 16px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Light theme date separator */
+body.light-theme .date-separator::before,
+body.light-theme .date-separator::after {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .date-text {
+    background: rgba(0, 0, 0, 0.05);
+    color: rgba(0, 0, 0, 0.6);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
 /* Message Bubbles */
 .message {
     margin-bottom: 16px;
