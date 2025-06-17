@@ -4,6 +4,7 @@ let currentUser = null;
 let selectedChat = null;
 let friends = [];
 let messages = {};
+let unreadConversations = new Set();
 
 // Initialize chat application
 function initChat() {
@@ -58,7 +59,16 @@ function setupSocketListeners() {
             }
             
             // Show notification for new messages from others
-            showNotification(`New message from ${data.senderName}`);
+            showNotification(`New message from ${data.senderName}`, () => {
+                // Navigate to the sender's chat
+                const sender = friends.find(f => f.username === data.sender);
+                if (sender) {
+                    selectChat(data.sender, data.senderName);
+                }
+            });
+            
+            // Mark conversation as having unread messages
+            markConversationUnread(chatUsername);
         }
         
         // Update conversation preview for all messages
@@ -184,7 +194,10 @@ function displayFriend(friend, conversationData = null) {
     friendEl.className = 'conversation-item';
     friendEl.dataset.username = username;
     friendEl.innerHTML = `
-        <div class="conversation-avatar">${displayName[0].toUpperCase()}</div>
+        <div class="conversation-avatar">
+            ${displayName[0].toUpperCase()}
+            <span class="unread-indicator"></span>
+        </div>
         <div class="conversation-content">
             <div class="conversation-header-info">
                 <div class="conversation-name">${displayName}</div>
@@ -196,7 +209,11 @@ function displayFriend(friend, conversationData = null) {
         <div class="conversation-status">${isOnline ? '🟢' : ''}</div>
     `;
     
-    friendEl.onclick = () => selectChat(username, displayName);
+    friendEl.onclick = () => {
+        selectChat(username, displayName);
+        // Clear unread indicator when chat is selected
+        markConversationRead(username);
+    };
     friendsList.appendChild(friendEl);
 }
 
@@ -477,13 +494,23 @@ function updateConversationPreview(messageData) {
     }
 }
 
-function showNotification(message) {
+function showNotification(message, clickHandler = null) {
     // Simple notification
     console.log('Notification:', message);
     
     const notif = document.createElement('div');
     notif.className = 'notification';
     notif.textContent = message;
+    
+    // Make clickable if handler provided
+    if (clickHandler) {
+        notif.style.cursor = 'pointer';
+        notif.onclick = () => {
+            clickHandler();
+            notif.remove();
+        };
+    }
+    
     document.body.appendChild(notif);
     
     setTimeout(() => notif.remove(), 3000);
@@ -544,6 +571,35 @@ async function loadMessages(username) {
         // Fall back to cached messages if there's an error
         if (messages[username]) {
             messages[username].forEach(msg => displayMessage(msg));
+        }
+    }
+}
+
+// Mark conversation as having unread messages
+function markConversationUnread(username) {
+    if (username === selectedChat) {
+        // Don't mark as unread if we're currently viewing this chat
+        return;
+    }
+    
+    unreadConversations.add(username);
+    const friendEl = document.querySelector(`[data-username="${username}"]`);
+    if (friendEl) {
+        const indicator = friendEl.querySelector('.unread-indicator');
+        if (indicator) {
+            indicator.classList.add('active');
+        }
+    }
+}
+
+// Mark conversation as read
+function markConversationRead(username) {
+    unreadConversations.delete(username);
+    const friendEl = document.querySelector(`[data-username="${username}"]`);
+    if (friendEl) {
+        const indicator = friendEl.querySelector('.unread-indicator');
+        if (indicator) {
+            indicator.classList.remove('active');
         }
     }
 }

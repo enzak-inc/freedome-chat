@@ -493,6 +493,9 @@
                 messageInput.placeholder = 'Type your message...';
             }
             
+            // Clear unread indicator when chat is selected
+            markConversationRead(username);
+            
             // Load messages
             loadMessages(username);
         };
