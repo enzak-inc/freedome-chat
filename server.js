@@ -85,9 +85,7 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    // Get user's friends
-    const friends = await User.getFriends(user.user_id);
-    
+    // Don't send friends list on login, fetch separately
     res.json({
       success: true,
       user: {
@@ -95,8 +93,7 @@ app.post('/api/login', async (req, res) => {
         displayName: user.display_name,
         userId: user.user_id,
         qrCode: user.qr_code,
-        shareableLink: user.shareable_link,
-        friends
+        shareableLink: user.shareable_link
       }
     });
     
@@ -183,6 +180,18 @@ app.get('/api/groups/user/:userId', async (req, res) => {
   } catch (error) {
     console.error('Groups fetch error:', error);
     res.status(500).json({ error: 'Failed to fetch groups' });
+  }
+});
+
+// Get user's friends
+app.get('/api/friends/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const friends = await User.getFriends(userId);
+    res.json(friends);
+  } catch (error) {
+    console.error('Friends fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch friends' });
   }
 });
 
