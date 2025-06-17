@@ -1,9 +1,8 @@
 -- Iran Chat App Database Schema
 -- MySQL Database Initialization
 
--- Create database if it doesn't exist
-CREATE DATABASE IF NOT EXISTS iran_chat_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE iran_chat_db;
+-- Note: Database creation and USE statements are handled by setup script
+-- This file only contains table definitions
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (

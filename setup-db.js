@@ -31,7 +31,7 @@ async function setupDatabase() {
         console.log('✅ Connected to MySQL server');
         
         // Create database if it doesn't exist
-        const dbName = process.env.DB_NAME || 'iran_chat_db';
+        const dbName = process.env.DB_NAME || 'freedom_chat';
         console.log(`🗄️  Creating database: ${dbName}`);
         await connection.execute(`CREATE DATABASE IF NOT EXISTS ${dbName} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
         await connection.execute(`USE ${dbName}`);
