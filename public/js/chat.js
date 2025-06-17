@@ -113,7 +113,7 @@ async function loadFriends() {
 }
 
 // Display friends list
-function displayFriendsList() {
+async function displayFriendsList() {
     const friendsList = document.getElementById('friendsList');
     if (!friendsList) return;
     
@@ -124,12 +124,35 @@ function displayFriendsList() {
         return;
     }
     
-    friends.forEach(friend => displayFriend(friend));
+    // Load recent conversations to get message previews
+    try {
+        const response = await fetch(`/api/conversations/${currentUser.userId}`);
+        if (response.ok) {
+            const conversations = await response.json();
+            console.log('Loaded conversations:', conversations);
+            
+            // Create a map of username to conversation data
+            const conversationMap = new Map();
+            conversations.forEach(conv => {
+                conversationMap.set(conv.username, conv);
+            });
+            
+            // Display friends with conversation data
+            friends.forEach(friend => displayFriend(friend, conversationMap.get(friend.username)));
+        } else {
+            // Fallback to displaying friends without conversation data
+            friends.forEach(friend => displayFriend(friend));
+        }
+    } catch (error) {
+        console.error('Error loading conversations:', error);
+        // Fallback to displaying friends without conversation data
+        friends.forEach(friend => displayFriend(friend));
+    }
 }
 
 // Display single friend (conversation item)
-function displayFriend(friend) {
-    console.log('displayFriend called with:', friend);
+function displayFriend(friend, conversationData = null) {
+    console.log('displayFriend called with:', friend, conversationData);
     const friendsList = document.getElementById('friendsList');
     if (!friendsList) return;
     
@@ -143,10 +166,19 @@ function displayFriend(friend) {
         return;
     }
     
-    // Get last message for preview
-    const lastMessage = getLastMessage(username);
-    const previewText = lastMessage ? lastMessage.message : 'No messages yet';
-    const messageTime = lastMessage ? formatMessageTime(lastMessage.timestamp) : '';
+    // Use conversation data if available, otherwise fall back to local cache
+    let previewText = 'No messages yet';
+    let messageTime = '';
+    
+    if (conversationData) {
+        previewText = conversationData.last_message || 'No messages yet';
+        messageTime = conversationData.last_message_time ? formatMessageTime(conversationData.last_message_time) : '';
+    } else {
+        // Fallback to local cache
+        const lastMessage = getLastMessage(username);
+        previewText = lastMessage ? lastMessage.message : 'No messages yet';
+        messageTime = lastMessage ? formatMessageTime(lastMessage.timestamp) : '';
+    }
     
     const friendEl = document.createElement('div');
     friendEl.className = 'conversation-item';
@@ -467,14 +499,51 @@ function updateUserStatus(username, isOnline) {
     }
 }
 
-function loadMessages(username) {
+async function loadMessages(username) {
     const messagesEl = document.getElementById('messages');
     if (!messagesEl) return;
     
     messagesEl.innerHTML = '';
     
-    // Display cached messages if any
-    if (messages[username]) {
-        messages[username].forEach(msg => displayMessage(msg));
+    try {
+        // First check if we have the recipient's user ID
+        const recipient = friends.find(f => f.username === username);
+        if (!recipient || !currentUser) {
+            console.log('Recipient or current user not found for message loading');
+            return;
+        }
+        
+        // Load message history from server
+        const response = await fetch(`/api/messages/private/${currentUser.userId}/${recipient.user_id || recipient.userId}`);
+        if (response.ok) {
+            const serverMessages = await response.json();
+            console.log('Loaded messages from server:', serverMessages);
+            
+            // Store messages locally and display them
+            messages[username] = serverMessages;
+            serverMessages.forEach(msg => {
+                // Convert server message format to our format
+                const messageData = {
+                    sender: msg.sender_username,
+                    senderName: msg.sender_display_name,
+                    message: msg.message,
+                    timestamp: msg.timestamp,
+                    recipientUsername: msg.recipient_username
+                };
+                displayMessage(messageData);
+            });
+        } else {
+            console.log('Failed to load message history');
+            // Fall back to cached messages if server fails
+            if (messages[username]) {
+                messages[username].forEach(msg => displayMessage(msg));
+            }
+        }
+    } catch (error) {
+        console.error('Error loading message history:', error);
+        // Fall back to cached messages if there's an error
+        if (messages[username]) {
+            messages[username].forEach(msg => displayMessage(msg));
+        }
     }
 }
