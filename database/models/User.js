@@ -90,21 +90,30 @@ class User {
     
     // Friend-related methods
     static async addFriend(userId, friendId) {
-        const sql = `
-            INSERT INTO friends (user_id, friend_id, status)
-            VALUES (?, ?, 'accepted')
-        `;
-        
         try {
+            // Check if friendship already exists
+            const existingFriendship = await this.isFriend(userId, friendId);
+            if (existingFriendship) {
+                console.log('Friendship already exists');
+                return true; // Already friends
+            }
+            
+            const sql = `
+                INSERT INTO friends (user_id, friend_id, status)
+                VALUES (?, ?, 'accepted')
+            `;
+            
             // Add bidirectional friendship
             await dbAsync.run(sql, [userId, friendId]);
             await dbAsync.run(sql, [friendId, userId]);
             return true;
         } catch (error) {
-            // Handle duplicate friendship
-            if (error.message.includes('UNIQUE constraint failed')) {
+            // Handle duplicate friendship (MySQL error)
+            if (error.code === 'ER_DUP_ENTRY') {
+                console.log('Duplicate friendship detected, friendship already exists');
                 return true; // Already friends
             }
+            console.error('Add friend error:', error);
             throw error;
         }
     }

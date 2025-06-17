@@ -67,14 +67,30 @@ function setupSocketListeners() {
     });
 
     socket.on('friend_added', (data) => {
+        console.log('Friend added event received:', data);
         friends.push(data);
         displayFriend(data);
         showNotification(`${data.displayName} is now your friend!`);
+        
+        // Also update the currentUser friends list
+        if (currentUser.friends) {
+            currentUser.friends.push(data);
+        } else {
+            currentUser.friends = [data];
+        }
+        
+        // Save updated user data
+        Auth.saveUser(currentUser);
     });
 
     socket.on('friend_request_accepted', (data) => {
         showNotification(`${data.displayName} accepted your friend request!`);
         loadFriends();
+    });
+
+    socket.on('error', (data) => {
+        console.log('Socket error received:', data);
+        showNotification(`Error: ${data.message}`);
     });
 }
 

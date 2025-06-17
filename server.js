@@ -394,33 +394,53 @@ io.on('connection', (socket) => {
   // Add friend
   socket.on('add_friend', async (data) => {
     try {
+      console.log('Add friend request:', data);
       const { friendUsername } = data;
       const user = activeUsers.get(socket.id);
       
-      if (!user) return;
+      if (!user) {
+        console.log('User not found in active users');
+        socket.emit('error', { message: 'Authentication required' });
+        return;
+      }
       
+      console.log('Looking for friend with username:', friendUsername);
       const friend = await User.findByUsername(friendUsername);
       if (!friend) {
+        console.log('Friend not found in database');
         socket.emit('error', { message: 'User not found' });
         return;
       }
       
+      // Don't allow adding yourself as friend
+      if (user.user_id === friend.user_id) {
+        socket.emit('error', { message: 'Cannot add yourself as friend' });
+        return;
+      }
+      
+      console.log('Adding friendship between:', user.username, 'and', friend.username);
+      
       // Add friend relationship
-      await User.addFriend(user.user_id, friend.user_id);
+      const success = await User.addFriend(user.user_id, friend.user_id);
       
-      socket.emit('friend_added', {
-        username: friend.username,
-        displayName: friend.display_name,
-        isOnline: friend.is_online
-      });
-      
-      // Notify friend if online
-      const friendSocket = [...activeUsers.values()].find(u => u.user_id === friend.user_id);
-      if (friendSocket) {
-        io.to(friendSocket.socketId).emit('friend_request_accepted', {
-          username: user.username,
-          displayName: user.display_name
+      if (success) {
+        console.log('Friendship added successfully');
+        
+        socket.emit('friend_added', {
+          username: friend.username,
+          displayName: friend.display_name,
+          isOnline: friend.is_online
         });
+        
+        // Notify friend if online
+        const friendSocket = [...activeUsers.values()].find(u => u.user_id === friend.user_id);
+        if (friendSocket) {
+          console.log('Notifying friend that they were added');
+          io.to(friendSocket.socketId).emit('friend_request_accepted', {
+            username: user.username,
+            displayName: user.display_name
+          });
+        }
       }
     } catch (error) {
       console.error('Add friend error:', error);
