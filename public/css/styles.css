@@ -531,9 +531,9 @@ body.light-theme {
     background: #000;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 0 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 12px;
 }
 
 .back-btn {
@@ -543,7 +543,6 @@ body.light-theme {
     font-size: 28px;
     cursor: pointer;
     padding: 8px;
-    margin-right: 12px;
 }
 
 .chat-info {
@@ -560,19 +559,6 @@ body.light-theme {
 .chat-subtitle {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.5);
-}
-
-.chat-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.edit-btn, .delete-btn {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 8px;
 }
 
 /* Messages Container */
@@ -672,20 +658,6 @@ body.light-theme {
 
 .message-input-container input::placeholder {
     color: rgba(255, 255, 255, 0.5);
-}
-
-.attach-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: #fff;
-    font-size: 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .send-btn {
@@ -897,11 +869,6 @@ body.light-theme .clear-search-btn {
 
 body.light-theme .message.received .message-content {
     background: rgba(0, 0, 0, 0.1);
-    color: #000;
-}
-
-body.light-theme .attach-btn {
-    background: rgba(0, 0, 0, 0.05);
     color: #000;
 }
 
