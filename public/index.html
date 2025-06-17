@@ -461,6 +461,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    Auth.saveUser(data.user);
                     currentUser = data.user;
                     initializeChat();
                 } else {
