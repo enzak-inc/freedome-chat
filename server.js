@@ -256,12 +256,22 @@ io.on('connection', (socket) => {
   // One-to-one chat
   socket.on('private_message', async (data) => {
     try {
+      console.log('Private message received:', data);
       const { recipientUsername, message } = data;
       const sender = activeUsers.get(socket.id);
       
-      if (!sender) return;
+      console.log('Sender:', sender ? sender.username : 'Not found');
+      console.log('Recipient username:', recipientUsername);
+      console.log('Message:', message);
+      
+      if (!sender) {
+        console.log('Sender not found in active users');
+        return;
+      }
       
       const recipient = await User.findByUsername(recipientUsername);
+      console.log('Recipient found:', recipient ? recipient.username : 'Not found');
+      
       if (!recipient) {
         socket.emit('error', { message: 'User not found' });
         return;

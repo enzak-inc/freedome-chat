@@ -122,22 +122,33 @@ function displayFriendsList() {
 
 // Display single friend
 function displayFriend(friend) {
+    console.log('displayFriend called with:', friend);
     const friendsList = document.getElementById('friendsList');
     if (!friendsList) return;
     
+    // Handle different friend data structures
+    const displayName = friend.displayName || friend.display_name || friend.username;
+    const username = friend.username;
+    const isOnline = friend.isOnline || friend.is_online || false;
+    
+    if (!displayName || !username) {
+        console.error('Invalid friend data:', friend);
+        return;
+    }
+    
     const friendEl = document.createElement('div');
     friendEl.className = 'friend-item';
-    friendEl.dataset.username = friend.username;
+    friendEl.dataset.username = username;
     friendEl.innerHTML = `
-        <div class="friend-avatar">${friend.displayName[0].toUpperCase()}</div>
+        <div class="friend-avatar">${displayName[0].toUpperCase()}</div>
         <div class="friend-info">
-            <div class="friend-name">${friend.displayName}</div>
-            <div class="friend-username">${friend.username}</div>
+            <div class="friend-name">${displayName}</div>
+            <div class="friend-username">${username}</div>
         </div>
-        <div class="friend-status ${friend.isOnline ? 'online' : 'offline'}"></div>
+        <div class="friend-status ${isOnline ? 'online' : 'offline'}"></div>
     `;
     
-    friendEl.onclick = () => selectChat(friend.username, friend.displayName);
+    friendEl.onclick = () => selectChat(username, displayName);
     friendsList.appendChild(friendEl);
 }
 

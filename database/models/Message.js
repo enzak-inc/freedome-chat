@@ -4,12 +4,29 @@ class Message {
     static async create(messageData) {
         const { senderId, recipientId, groupId, message, messageType = 'text' } = messageData;
         
+        console.log('Message.create called with:', messageData);
+        
+        // Validate required parameters
+        if (!senderId || !message) {
+            throw new Error('senderId and message are required');
+        }
+        
         const sql = `
             INSERT INTO messages (sender_id, recipient_id, group_id, message, message_type)
             VALUES (?, ?, ?, ?, ?)
         `;
         
-        const result = await dbAsync.run(sql, [senderId, recipientId, groupId, message, messageType]);
+        // Convert undefined to null for database
+        const params = [
+            senderId, 
+            recipientId || null, 
+            groupId || null, 
+            message, 
+            messageType
+        ];
+        
+        console.log('Executing SQL with params:', params);
+        const result = await dbAsync.run(sql, params);
         
         return {
             id: result.id,
