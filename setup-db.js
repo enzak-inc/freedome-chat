@@ -52,13 +52,18 @@ async function setupDatabase() {
             .map(stmt => stmt.trim())
             .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
         
-        for (const statement of statements) {
-            if (statement.trim()) {
+        console.log(`📋 Found ${statements.length} SQL statements to execute`);
+        
+        for (let i = 0; i < statements.length; i++) {
+            const statement = statements[i].trim();
+            if (statement) {
                 try {
-                    await connection.execute(statement);
+                    console.log(`⚡ Executing statement ${i + 1}/${statements.length}: ${statement.substring(0, 50)}...`);
+                    const result = await connection.execute(statement);
+                    console.log(`✅ Statement ${i + 1} executed successfully`);
                 } catch (error) {
-                    console.log(`⚠️  Statement: ${statement.substring(0, 50)}...`);
-                    console.log(`⚠️  Error: ${error.message}`);
+                    console.log(`❌ Statement ${i + 1} failed: ${statement.substring(0, 100)}...`);
+                    console.log(`❌ Error: ${error.message}`);
                     // Continue with other statements
                 }
             }
