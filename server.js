@@ -264,13 +264,8 @@ io.on('connection', (socket) => {
   // One-to-one chat
   socket.on('private_message', async (data) => {
     try {
-      console.log('Private message received:', data);
       const { recipientUsername, message } = data;
       const sender = activeUsers.get(socket.id);
-      
-      console.log('Sender:', sender ? sender.username : 'Not found');
-      console.log('Recipient username:', recipientUsername);
-      console.log('Message:', message);
       
       if (!sender) {
         console.log('Sender not found in active users');
@@ -278,7 +273,6 @@ io.on('connection', (socket) => {
       }
       
       const recipient = await User.findByUsername(recipientUsername);
-      console.log('Recipient found:', recipient ? recipient.username : 'Not found');
       
       if (!recipient) {
         socket.emit('error', { message: 'User not found' });
@@ -297,19 +291,13 @@ io.on('connection', (socket) => {
       const roomId = [sender.user_id, recipient.user_id].sort().join('_');
       socket.join(roomId);
       
-      console.log('Created/joined room:', roomId);
-      
       // If recipient is online, add them to room
       const recipientSocket = [...activeUsers.values()].find(u => u.user_id === recipient.user_id);
       if (recipientSocket) {
-        console.log('Recipient is online, adding to room:', recipientSocket.username);
         const recipientSocketObj = io.sockets.sockets.get(recipientSocket.socketId);
         if (recipientSocketObj) {
           recipientSocketObj.join(roomId);
-          console.log('Recipient added to room successfully');
         }
-      } else {
-        console.log('Recipient is offline');
       }
       
       // Send message to room (both users)
@@ -323,14 +311,7 @@ io.on('connection', (socket) => {
         recipientUsername: recipient.username
       };
       
-      console.log('Emitting message to room:', roomId, 'Message:', messageData);
       io.to(roomId).emit('private_message', messageData);
-      
-      // Also send directly to recipient if online (backup delivery)
-      if (recipientSocket) {
-        console.log('Also sending direct message to recipient');
-        io.to(recipientSocket.socketId).emit('private_message', messageData);
-      }
     } catch (error) {
       console.error('Private message error:', error);
       socket.emit('error', { message: 'Failed to send message' });

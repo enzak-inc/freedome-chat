@@ -4,8 +4,6 @@ class Message {
     static async create(messageData) {
         const { senderId, recipientId, groupId, message, messageType = 'text' } = messageData;
         
-        console.log('Message.create called with:', messageData);
-        
         // Validate required parameters
         if (!senderId || !message) {
             throw new Error('senderId and message are required');
@@ -24,8 +22,6 @@ class Message {
             message, 
             messageType
         ];
-        
-        console.log('Executing SQL with params:', params);
         const result = await dbAsync.run(sql, params);
         
         return {
