@@ -6,6 +6,7 @@
 **Purpose:** Secure, lightweight messaging application for local networks in Iran  
 **Target:** Iranian users who need reliable local communication without external dependencies  
 **Architecture:** Real-time web-based chat application using Node.js and Socket.IO  
+**Database:** MySQL/MariaDB (migrated from SQLite for better performance and scalability)  
 
 ## 📋 Project Requirements
 
@@ -38,10 +39,11 @@
 ### Technical Requirements
 - **Backend:** Node.js with Express.js
 - **Real-time Communication:** Socket.IO for WebSocket handling
-- **Database:** SQLite for local data storage (lightweight, file-based)
+- **Database:** MySQL/MariaDB with connection pooling
 - **Frontend:** Pure HTML/CSS/JavaScript (no frameworks for simplicity)
 - **Security:** bcryptjs for password hashing, input validation
 - **QR Code Generation:** qrcode npm package
+- **Environment Variables:** dotenv for configuration management
 - **Local Network Optimized:** Must work without internet connectivity
 
 ## 🏗️ Technical Architecture
@@ -53,8 +55,10 @@ server.js (main server file)
 ├── Socket.IO real-time server
 ├── Authentication endpoints (/api/login, /api/register)
 ├── User management endpoints (/api/user/:username, /api/search/:query)
+├── Message endpoints (/api/messages/*, /api/conversations/*)
+├── Group endpoints (/api/groups/*)
 ├── Static file serving (HTML/CSS/JS)
-└── Database integration (SQLite)
+└── Database integration (MySQL/MariaDB with connection pooling)
 ```
 
 ### Frontend Structure
@@ -65,57 +69,77 @@ public/
 └── assets/ (CSS, JavaScript, images)
 ```
 
-### Database Schema
+### Database Schema (MySQL/MariaDB)
 ```sql
 -- Users table
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    display_name TEXT NOT NULL,
-    password_hash TEXT NOT NULL,
-    user_id TEXT UNIQUE NOT NULL,
-    qr_code TEXT,
-    shareable_link TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    is_online BOOLEAN DEFAULT 0
-);
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    display_name VARCHAR(100) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    user_id VARCHAR(36) UNIQUE NOT NULL,
+    qr_code LONGTEXT,
+    shareable_link VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_online BOOLEAN DEFAULT FALSE,
+    INDEX idx_users_username (username),
+    INDEX idx_users_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Friends/Contacts table
-CREATE TABLE friends (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT NOT NULL,
-    friend_id TEXT NOT NULL,
-    status TEXT DEFAULT 'accepted',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+-- Friends/Contacts table  
+CREATE TABLE IF NOT EXISTS friends (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL,
+    friend_id VARCHAR(36) NOT NULL,
+    status ENUM('pending', 'accepted', 'blocked') DEFAULT 'accepted',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_friendship (user_id, friend_id),
+    INDEX idx_friends_user_id (user_id),
+    INDEX idx_friends_friend_id (friend_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (friend_id) REFERENCES users(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Messages table
-CREATE TABLE messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sender_id TEXT NOT NULL,
-    recipient_id TEXT,
-    group_id TEXT,
+CREATE TABLE IF NOT EXISTS messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sender_id VARCHAR(36) NOT NULL,
+    recipient_id VARCHAR(36),
+    group_id VARCHAR(36),
     message TEXT NOT NULL,
-    message_type TEXT DEFAULT 'text',
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+    message_type ENUM('text', 'image', 'file') DEFAULT 'text',
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_read BOOLEAN DEFAULT FALSE,
+    INDEX idx_messages_sender_id (sender_id),
+    INDEX idx_messages_recipient_id (recipient_id),
+    INDEX idx_messages_group_id (group_id),
+    INDEX idx_messages_timestamp (timestamp),
+    FOREIGN KEY (sender_id) REFERENCES users(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Groups table
-CREATE TABLE groups (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    group_id TEXT UNIQUE NOT NULL,
-    group_name TEXT NOT NULL,
-    admin_id TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+CREATE TABLE IF NOT EXISTS groups (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    group_id VARCHAR(36) UNIQUE NOT NULL,
+    group_name VARCHAR(100) NOT NULL,
+    admin_id VARCHAR(36) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_groups_group_id (group_id),
+    FOREIGN KEY (admin_id) REFERENCES users(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Group members table
-CREATE TABLE group_members (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    group_id TEXT NOT NULL,
-    user_id TEXT NOT NULL,
-    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+CREATE TABLE IF NOT EXISTS group_members (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    group_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_group_member (group_id, user_id),
+    INDEX idx_group_members_group_id (group_id),
+    INDEX idx_group_members_user_id (user_id),
+    FOREIGN KEY (group_id) REFERENCES groups(group_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ## 🔧 Key Features to Implement
@@ -157,15 +181,17 @@ CREATE TABLE group_members (
 - Auto-join users to appropriate rooms on connection
 ```
 
-### 3. Database Integration
+### 3. Database Integration (MySQL/MariaDB)
 ```javascript
-// Required Database Operations:
-- User CRUD (Create, Read, Update, Delete)
-- Friend relationship management
-- Message storage and retrieval
-- Group management (create, add/remove members)
-- Search functionality for users
-- Message history pagination
+// Database Operations Implemented:
+- Connection pooling for better performance
+- User CRUD with prepared statements
+- Friend relationship management with bidirectional links
+- Message storage with indexing for fast retrieval
+- Group management with foreign key constraints
+- Optimized search with indexes
+- Message history with pagination support
+- Automatic database initialization on startup
 ```
 
 ### 4. Security Considerations
@@ -199,31 +225,92 @@ CREATE TABLE group_members (
 - **Shareable Link:** Copy-to-clipboard functionality
 - **Navigation:** Back to chat button
 
-## 🚀 Development Tasks for AI Agent
+## 🚀 Database Deployment Commands
 
-### Phase 1: Core Backend Setup
-1. **Initialize Node.js project** with required dependencies
-2. **Set up Express.js server** with CORS and basic middleware
-3. **Integrate Socket.IO** for real-time communication
-4. **Create SQLite database** with required tables
-5. **Implement user authentication endpoints** (register/login)
-6. **Add input validation** and security measures
+### Production Server Deployment
+```bash
+# 1. Clone the repository
+git clone <repository-url>
+cd freedome-chat
 
-### Phase 2: Database & User Management
-1. **Create database helper functions** for user operations
-2. **Implement user search functionality**
-3. **Add friend management system**
-4. **Create user profile endpoints**
-5. **Implement QR code generation**
-6. **Add shareable link handling**
+# 2. Install dependencies
+npm install
 
-### Phase 3: Real-time Chat Features
-1. **Set up Socket.IO event handlers**
-2. **Implement private messaging system**
-3. **Create group chat functionality**
-4. **Add message persistence to database**
-5. **Implement online/offline status tracking**
-6. **Create room management system**
+# 3. Configure environment variables
+cp .env.example .env
+# Edit .env with your MySQL credentials:
+# DB_HOST=localhost
+# DB_USER=root
+# DB_PASSWORD=your_password
+# DB_NAME=freedom_chat
+
+# 4. Deploy database schema
+npm run setup-db
+
+# 5. Start the application
+npm start
+
+# Alternative: Use PM2 for production
+npm install -g pm2
+pm2 start server.js --name iran-chat
+pm2 save
+pm2 startup
+```
+
+### Manual Database Deployment
+```bash
+# Option 1: Using setup script (recommended)
+npm run setup-db
+
+# Option 2: Manual MySQL deployment
+mysql -u root -p < database/init-mariadb.sql
+
+# Option 3: Via MySQL command line
+mysql -u root -p
+SOURCE /path/to/database/init-mariadb.sql;
+```
+
+### Database Reset/Migration
+```bash
+# Reset database (drops and recreates all tables)
+npm run reset-db
+
+# Check database status
+mysql -u root -p -e "USE freedom_chat; SHOW TABLES;"
+```
+
+## 🚀 Development Progress
+
+### Phase 1: Core Backend Setup ✅ COMPLETED
+1. ✅ **Initialize Node.js project** with required dependencies
+2. ✅ **Set up Express.js server** with CORS and basic middleware
+3. ✅ **Integrate Socket.IO** for real-time communication
+4. ✅ **Create MySQL/MariaDB database** with required tables
+5. ✅ **Implement user authentication endpoints** (register/login)
+6. ✅ **Add input validation** and security measures
+7. ✅ **Migrate from SQLite to MySQL** for better scalability
+8. ✅ **Add environment configuration** with dotenv
+9. ✅ **Create database setup script** for easy deployment
+
+### Phase 2: Database & User Management ✅ COMPLETED
+1. ✅ **Create database helper functions** with models (User, Message, Group)
+2. ✅ **Implement user search functionality** with indexed queries
+3. ✅ **Add friend management system** with bidirectional relationships
+4. ✅ **Create user profile endpoints** for public profiles
+5. ✅ **Implement QR code generation** on user registration
+6. ✅ **Add shareable link handling** with profile routes
+7. ✅ **Database models with full CRUD operations**
+8. ✅ **Connection pooling for performance**
+
+### Phase 3: Real-time Chat Features ✅ COMPLETED
+1. ✅ **Set up Socket.IO event handlers** for all chat events
+2. ✅ **Implement private messaging system** with database persistence
+3. ✅ **Create group chat functionality** with admin controls
+4. ✅ **Add message persistence to database** with proper indexing
+5. ✅ **Implement online/offline status tracking** in real-time
+6. ✅ **Create room management system** for private and group chats
+7. ✅ **Message history endpoints** with pagination
+8. ✅ **Recent conversations API** for chat list
 
 ### Phase 4: Frontend Development
 1. **Create responsive HTML/CSS layout**
@@ -241,41 +328,28 @@ CREATE TABLE group_members (
 5. **Optimize for local network performance**
 6. **Add error handling and user feedback**
 
-## 📂 File Structure to Create
+## 📂 Current File Structure
 
 ```
-iran-chat-app/
-├── package.json
-├── server.js
+freedome-chat/
+├── package.json               # Dependencies and scripts
+├── server.js                  # Main server with all endpoints and Socket.IO
+├── setup-db.js               # Database setup script  
+├── .env                      # Environment variables (not in git)
+├── .env.example              # Template for environment variables
+├── .gitignore                # Git ignore file
+├── ai-memory.txt             # Project documentation and roadmap
+├── README-DATABASE.md        # Database setup guide
 ├── database/
-│   ├── init.sql
-│   ├── database.js
+│   ├── init.sql              # Original MySQL schema
+│   ├── init-mariadb.sql      # MariaDB-compatible schema
+│   ├── database.js           # MySQL connection pool and helpers
 │   └── models/
-│       ├── User.js
-│       ├── Message.js
-│       └── Group.js
-├── public/
-│   ├── index.html
-│   ├── profile.html
-│   ├── css/
-│   │   └── styles.css
-│   ├── js/
-│   │   ├── app.js
-│   │   ├── chat.js
-│   │   └── auth.js
-│   └── assets/
-│       └── icons/
-├── routes/
-│   ├── auth.js
-│   ├── users.js
-│   └── chat.js
-├── middleware/
-│   ├── validation.js
-│   └── security.js
-├── utils/
-│   ├── qrcode.js
-│   └── helpers.js
-└── README.md
+│       ├── User.js           # User model with auth and friends
+│       ├── Message.js        # Message model with chat history
+│       └── Group.js          # Group model with members
+└── public/
+    └── index.html            # Basic HTML interface
 ```
 
 ## 🎯 Success Criteria
@@ -328,5 +402,36 @@ The project will be considered complete when:
 5. **Use minimal external dependencies** - easier to deploy and maintain
 6. **Consider Persian language support** - add RTL text support if needed
 7. **Test thoroughly on local networks** - the primary use case is offline/local network operation
+
+## 📝 Current Project Status
+
+### ✅ Completed Features
+- **Backend Infrastructure:** Full Node.js/Express server with Socket.IO
+- **Database:** MySQL/MariaDB with optimized schema and indexing
+- **User System:** Registration, login, profile management with QR codes
+- **Real-time Chat:** Private and group messaging with Socket.IO
+- **Friend System:** Add friends, manage contacts
+- **Message Persistence:** All messages stored in database
+- **API Endpoints:** Complete REST API for all features
+- **Database Models:** User, Message, and Group models with full CRUD
+- **Environment Config:** Secure credential management with .env
+- **Deployment Scripts:** Easy database setup and migration
+
+### 🚧 Next Steps (Phase 4)
+- Frontend UI implementation (HTML/CSS/JavaScript)
+- Authentication forms and validation
+- Real-time chat interface
+- Friend list and user search UI
+- Group management interface
+- Message history display
+- Profile pages with QR codes
+
+### 💡 Key Technical Decisions Made
+1. **MySQL over SQLite:** Better performance, scalability, and concurrent connections
+2. **Connection Pooling:** Improved database performance under load
+3. **MariaDB Compatibility:** Schema works with both MySQL and MariaDB
+4. **Environment Variables:** Secure configuration management
+5. **Database Models:** Clean separation of concerns with model classes
+6. **Indexed Queries:** Fast search and message retrieval
 
 This chat application is designed to provide Iranian users with a reliable, secure, and easy-to-use communication platform that works independently of external internet services while maintaining modern chat app functionality and user experience.
