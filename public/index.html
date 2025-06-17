@@ -105,6 +105,11 @@
                 <span class="menu-text" id="themeText">حالت روشن</span>
             </div>
             
+            <div class="menu-item" onclick="showInviteFriend()">
+                <span class="menu-icon">📨</span>
+                <span class="menu-text">دعوت از دوست</span>
+            </div>
+            
             <div class="menu-item" onclick="showAbout()">
                 <span class="menu-icon">ℹ️</span>
                 <span class="menu-text">درباره ما</span>
@@ -165,6 +170,66 @@
             </div>
         </div>
         
+        <!-- Invite Friend View -->
+        <div id="inviteFriendView" class="invite-friend-view">
+            <!-- Invite Header -->
+            <div class="invite-header">
+                <button class="back-btn" onclick="backToConversations()">‹</button>
+                <h2 class="invite-title">دعوت از دوست</h2>
+            </div>
+            
+            <!-- Invite Content -->
+            <div class="invite-content">
+                <!-- User Info Card -->
+                <div class="invite-user-card">
+                    <div class="invite-avatar" id="inviteAvatar"></div>
+                    <div class="invite-user-info">
+                        <h3 class="invite-display-name" id="inviteDisplayName"></h3>
+                        <p class="invite-username" id="inviteUsername"></p>
+                    </div>
+                </div>
+                
+                <!-- QR Code Section -->
+                <div class="invite-section">
+                    <h4 class="section-subtitle">کد QR شما</h4>
+                    <div class="qr-container">
+                        <div id="inviteQRCode" class="qr-code-display"></div>
+                        <p class="qr-description">دوستان شما می‌توانند این کد را اسکن کنند</p>
+                    </div>
+                </div>
+                
+                <!-- Shareable Link Section -->
+                <div class="invite-section">
+                    <h4 class="section-subtitle">لینک اشتراک‌گذاری</h4>
+                    <div class="link-container">
+                        <input type="text" id="shareableLink" class="shareable-link-input" readonly>
+                        <button class="copy-btn" onclick="copyInviteLink()">کپی</button>
+                    </div>
+                    <p class="link-description">این لینک را با دوستان خود به اشتراک بگذارید</p>
+                </div>
+                
+                <!-- Share Options -->
+                <div class="invite-section">
+                    <h4 class="section-subtitle">روش‌های اشتراک‌گذاری</h4>
+                    <div class="share-options">
+                        <button class="share-option" onclick="shareViaText()">
+                            <span class="share-icon">💬</span>
+                            <span class="share-text">متن</span>
+                        </button>
+                        <button class="share-option" onclick="shareQRCode()">
+                            <span class="share-icon">📷</span>
+                            <span class="share-text">QR کد</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Back Button -->
+                <div class="invite-actions">
+                    <button class="cancel-btn" onclick="backToConversations()">بازگشت</button>
+                </div>
+            </div>
+        </div>
+
         <!-- About Us View -->
         <div id="aboutView" class="about-view">
             <!-- About Header -->
@@ -527,12 +592,14 @@
             const newChatView = document.getElementById('newChatView');
             const editProfileView = document.getElementById('editProfileView');
             const aboutView = document.getElementById('aboutView');
+            const inviteFriendView = document.getElementById('inviteFriendView');
             
             conversationsView.classList.add('active');
             chatView.classList.remove('active');
             newChatView.classList.remove('active');
             editProfileView.classList.remove('active');
             aboutView.classList.remove('active');
+            inviteFriendView.classList.remove('active');
             
             selectedChat = null;
             document.querySelectorAll('.conversation-item').forEach(el => {
@@ -733,6 +800,117 @@
             }
         }
 
+
+        function showInviteFriend() {
+            closeMenu();
+            showInviteFriendView();
+        }
+
+        function showInviteFriendView() {
+            const conversationsView = document.getElementById('conversationsView');
+            const chatView = document.getElementById('chatView');
+            const newChatView = document.getElementById('newChatView');
+            const editProfileView = document.getElementById('editProfileView');
+            const aboutView = document.getElementById('aboutView');
+            const inviteFriendView = document.getElementById('inviteFriendView');
+            
+            // Hide all other views
+            conversationsView.classList.remove('active');
+            chatView.classList.remove('active');
+            newChatView.classList.remove('active');
+            editProfileView.classList.remove('active');
+            aboutView.classList.remove('active');
+            
+            // Show invite view
+            inviteFriendView.classList.add('active');
+            
+            // Populate invite data
+            populateInviteData();
+        }
+
+        function populateInviteData() {
+            if (!currentUser) return;
+            
+            // Set user info
+            const inviteAvatar = document.getElementById('inviteAvatar');
+            const inviteDisplayName = document.getElementById('inviteDisplayName');
+            const inviteUsername = document.getElementById('inviteUsername');
+            const shareableLink = document.getElementById('shareableLink');
+            const inviteQRCode = document.getElementById('inviteQRCode');
+            
+            if (inviteAvatar) {
+                inviteAvatar.textContent = currentUser.displayName[0].toUpperCase();
+            }
+            
+            if (inviteDisplayName) {
+                inviteDisplayName.textContent = currentUser.displayName;
+            }
+            
+            if (inviteUsername) {
+                inviteUsername.textContent = currentUser.username;
+            }
+            
+            // Set shareable link
+            if (shareableLink && currentUser.shareableLink) {
+                shareableLink.value = currentUser.shareableLink;
+            }
+            
+            // Set QR code
+            if (inviteQRCode && currentUser.qrCode) {
+                inviteQRCode.innerHTML = `<img src="${currentUser.qrCode}" alt="QR Code">`;
+            }
+        }
+
+        function copyInviteLink() {
+            const shareableLink = document.getElementById('shareableLink');
+            const copyBtn = document.querySelector('.copy-btn');
+            
+            if (shareableLink) {
+                shareableLink.select();
+                shareableLink.setSelectionRange(0, 99999); // For mobile devices
+                
+                try {
+                    document.execCommand('copy');
+                    
+                    // Show feedback
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = 'کپی شد!';
+                    copyBtn.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                    
+                } catch (err) {
+                    alert('خطا در کپی کردن لینک');
+                }
+            }
+        }
+
+        function shareViaText() {
+            if (!currentUser) return;
+            
+            const shareText = `سلام! به اپلیکیشن Free Iran Chat بیا تا بتونیم باهم چت کنیم.\n\nلینک پروفایل من:\n${currentUser.shareableLink}\n\nاین یه پیام‌رسان محلی و امنه که بدون نیاز به اینترنت کار می‌کنه.`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'دعوت به Free Iran Chat',
+                    text: shareText
+                });
+            } else {
+                // Fallback to copying text
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert('متن دعوت کپی شد! می‌تونید آن را به اشتراک بگذارید.');
+                }).catch(() => {
+                    alert('خطا در کپی کردن متن');
+                });
+            }
+        }
+
+        function shareQRCode() {
+            alert('قابلیت اشتراک‌گذاری QR کد به زودی اضافه می‌شه!');
+        }
 
         function showAbout() {
             closeMenu();
