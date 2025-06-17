@@ -214,16 +214,150 @@ function displayMessage(data) {
     messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-// Add friend function
+// Add friend function - opens new chat page
 async function addFriend() {
-    const username = prompt('Enter friend username (e.g., @username):');
-    if (!username) return;
+    showNewChatView();
+}
+
+// Show new chat view
+function showNewChatView() {
+    const conversationsView = document.getElementById('conversationsView');
+    const newChatView = document.getElementById('newChatView');
     
-    // Ensure username starts with @
-    const friendUsername = username.startsWith('@') ? username : '@' + username;
+    conversationsView.classList.remove('active');
+    newChatView.classList.add('active');
     
+    // Focus on search input
+    setTimeout(() => {
+        const searchInput = document.getElementById('newChatSearchInput');
+        if (searchInput) {
+            searchInput.focus();
+        }
+    }, 300);
+}
+
+// Handle new chat search
+function handleNewChatSearch(event) {
+    const query = event.target.value.trim();
+    const clearBtn = document.querySelector('.clear-search-btn');
+    
+    if (query.length > 0) {
+        clearBtn.classList.remove('hidden');
+        
+        if (query.length > 2) {
+            searchUsersInNewChat(query);
+        }
+    } else {
+        clearBtn.classList.add('hidden');
+        showNewChatPlaceholder();
+    }
+}
+
+// Clear new chat search
+function clearNewChatSearch() {
+    const searchInput = document.getElementById('newChatSearchInput');
+    const clearBtn = document.querySelector('.clear-search-btn');
+    
+    searchInput.value = '';
+    clearBtn.classList.add('hidden');
+    showNewChatPlaceholder();
+    searchInput.focus();
+}
+
+// Search users in new chat view
+async function searchUsersInNewChat(query) {
+    const resultsContainer = document.getElementById('newChatSearchResults');
+    const loadingState = document.getElementById('newChatLoading');
+    
+    // Show loading
+    resultsContainer.innerHTML = '';
+    loadingState.classList.remove('hidden');
+    
+    try {
+        const response = await fetch(`/api/search/${encodeURIComponent(query)}`);
+        const users = await response.json();
+        
+        // Hide loading
+        loadingState.classList.add('hidden');
+        
+        displayNewChatSearchResults(users);
+    } catch (error) {
+        console.error('Search error:', error);
+        loadingState.classList.add('hidden');
+        showNewChatError();
+    }
+}
+
+// Display search results in new chat view
+function displayNewChatSearchResults(users) {
+    const resultsContainer = document.getElementById('newChatSearchResults');
+    
+    if (users.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="no-results-state">
+                <div class="no-results-icon">🔍</div>
+                <h3>No users found</h3>
+                <p>Try searching with a different username</p>
+            </div>
+        `;
+        return;
+    }
+    
+    resultsContainer.innerHTML = '';
+    
+    users.forEach(user => {
+        const userEl = document.createElement('div');
+        userEl.className = 'new-chat-result-item';
+        userEl.innerHTML = `
+            <div class="result-avatar">${user.display_name[0].toUpperCase()}</div>
+            <div class="result-info">
+                <div class="result-name">${user.display_name}</div>
+                <div class="result-username">${user.username}</div>
+            </div>
+            <button class="result-action" onclick="addUserAsFriend('${user.username}', '${user.display_name}')">
+                Add Friend
+            </button>
+        `;
+        resultsContainer.appendChild(userEl);
+    });
+}
+
+// Show placeholder in new chat
+function showNewChatPlaceholder() {
+    const resultsContainer = document.getElementById('newChatSearchResults');
+    resultsContainer.innerHTML = `
+        <div class="search-placeholder">
+            <div class="placeholder-icon">👋</div>
+            <h3>Find your friends</h3>
+            <p>Search for users by their username to start a conversation</p>
+        </div>
+    `;
+}
+
+// Show error state
+function showNewChatError() {
+    const resultsContainer = document.getElementById('newChatSearchResults');
+    resultsContainer.innerHTML = `
+        <div class="no-results-state">
+            <div class="no-results-icon">⚠️</div>
+            <h3>Search failed</h3>
+            <p>Please check your connection and try again</p>
+        </div>
+    `;
+}
+
+// Add user as friend from search results
+function addUserAsFriend(username, displayName) {
     if (socket) {
-        socket.emit('add_friend', { friendUsername });
+        socket.emit('add_friend', { friendUsername: username });
+        
+        // Show feedback
+        showNotification(`Friend request sent to ${displayName}`);
+        
+        // Go back to conversations after a moment
+        setTimeout(() => {
+            backToConversations();
+        }, 1500);
     }
 }
 

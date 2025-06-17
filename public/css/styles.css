@@ -811,7 +811,11 @@ body.light-theme .chat-header,
 body.light-theme .messages-container,
 body.light-theme .message-input-container,
 body.light-theme .hamburger-menu,
-body.light-theme .menu-header {
+body.light-theme .menu-header,
+body.light-theme .new-chat-view,
+body.light-theme .new-chat-header,
+body.light-theme .new-chat-search,
+body.light-theme .new-chat-results {
     background: #fff;
 }
 
@@ -847,7 +851,11 @@ body.light-theme .user-name,
 body.light-theme .menu-username,
 body.light-theme .menu-text,
 body.light-theme .menu-close-btn,
-body.light-theme .new-chat-btn {
+body.light-theme .new-chat-btn,
+body.light-theme .new-chat-title,
+body.light-theme .search-placeholder h3,
+body.light-theme .result-name,
+body.light-theme .no-results-state h3 {
     color: #000;
 }
 
@@ -865,14 +873,25 @@ body.light-theme .conversation-preview {
 }
 
 body.light-theme .search-container input,
-body.light-theme .message-input-container input {
+body.light-theme .message-input-container input,
+body.light-theme .search-input-container {
     background: rgba(0, 0, 0, 0.05);
     border-color: rgba(0, 0, 0, 0.1);
     color: #000;
 }
 
+body.light-theme .search-input-container input {
+    color: #000;
+}
+
 body.light-theme .search-container input::placeholder,
-body.light-theme .message-input-container input::placeholder {
+body.light-theme .message-input-container input::placeholder,
+body.light-theme .search-input-container input::placeholder {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+body.light-theme .search-input-container .search-icon,
+body.light-theme .clear-search-btn {
     color: rgba(0, 0, 0, 0.5);
 }
 
@@ -888,6 +907,249 @@ body.light-theme .attach-btn {
 
 body.light-theme .send-btn:disabled {
     background: rgba(0, 0, 0, 0.05);
+}
+
+/* New Chat/Search View */
+.new-chat-view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex;
+    flex-direction: column;
+    z-index: 3;
+}
+
+.new-chat-view.active {
+    transform: translateX(0);
+}
+
+/* New Chat Header */
+.new-chat-header {
+    height: 60px;
+    background: #000;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 12px;
+}
+
+.new-chat-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* New Chat Search */
+.new-chat-search {
+    padding: 16px;
+    background: #000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.search-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 0 16px;
+}
+
+.search-input-container .search-icon {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-right: 12px;
+}
+
+.search-input-container input {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 14px 0;
+    font-size: 16px;
+    color: #fff;
+    outline: none;
+}
+
+.search-input-container input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.clear-search-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    margin-left: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.clear-search-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* Search Results */
+.new-chat-results {
+    flex: 1;
+    overflow-y: auto;
+    background: #000;
+}
+
+.search-results-list {
+    padding: 0;
+}
+
+.search-placeholder {
+    padding: 60px 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.placeholder-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.search-placeholder h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.search-placeholder p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.4;
+}
+
+/* Search Result Items */
+.new-chat-result-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.new-chat-result-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.new-chat-result-item:active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.result-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #4a9eff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 18px;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.result-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.result-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.result-username {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.result-action {
+    padding: 8px 16px;
+    background: #4a9eff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.result-action:hover {
+    background: #3a8eef;
+    transform: translateY(-1px);
+}
+
+/* Loading State */
+.loading-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top: 3px solid #4a9eff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-state p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* No Results State */
+.no-results-state {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.no-results-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.no-results-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.no-results-state p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 body.light-theme .search-results {

@@ -138,6 +138,41 @@
                 <button onclick="sendMessage()" disabled id="sendBtn" class="send-btn">↑</button>
             </div>
         </div>
+        
+        <!-- New Chat/Search View -->
+        <div id="newChatView" class="new-chat-view">
+            <!-- New Chat Header -->
+            <div class="new-chat-header">
+                <button class="back-btn" onclick="backToConversations()">‹</button>
+                <h2 class="new-chat-title">New Chat</h2>
+            </div>
+            
+            <!-- Search Section -->
+            <div class="new-chat-search">
+                <div class="search-input-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="newChatSearchInput" placeholder="Search by username (e.g., @username)" onkeyup="handleNewChatSearch(event)" autocomplete="off">
+                    <button class="clear-search-btn hidden" onclick="clearNewChatSearch()">×</button>
+                </div>
+            </div>
+            
+            <!-- Search Results -->
+            <div class="new-chat-results">
+                <div id="newChatSearchResults" class="search-results-list">
+                    <div class="search-placeholder">
+                        <div class="placeholder-icon">👋</div>
+                        <h3>Find your friends</h3>
+                        <p>Search for users by their username to start a conversation</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="newChatLoading" class="loading-state hidden">
+                <div class="loading-spinner"></div>
+                <p>Searching...</p>
+            </div>
+        </div>
     </div>
 
     <script src="/js/auth.js"></script>
@@ -320,9 +355,11 @@
         function backToConversations() {
             const conversationsView = document.getElementById('conversationsView');
             const chatView = document.getElementById('chatView');
+            const newChatView = document.getElementById('newChatView');
             
             conversationsView.classList.add('active');
             chatView.classList.remove('active');
+            newChatView.classList.remove('active');
             
             selectedChat = null;
             document.querySelectorAll('.conversation-item').forEach(el => {
