@@ -46,78 +46,62 @@
     <div id="chatContainer" class="chat-container hidden">
         <!-- Conversations View -->
         <div id="conversationsView" class="conversations-view active">
-            <!-- iOS Status Bar -->
-            <div class="ios-status-bar">
-                <span class="status-time" id="statusTime"></span>
-                <div class="status-icons">
-                    <span class="signal">•••••</span>
-                    <span class="wifi">📶</span>
-                    <span class="battery">🔋</span>
+            <!-- Header -->
+            <div class="app-header">
+                <button class="menu-btn" onclick="toggleMenu()">☰</button>
+                <h1 class="app-title">Iran Chat</h1>
+                <div class="header-actions">
+                    <button class="theme-btn" onclick="toggleTheme()">🌓</button>
+                    <div class="user-avatar-header" onclick="showUserMenu()">
+                        <span id="headerAvatar"></span>
+                    </div>
+                    <button class="logout-btn" onclick="logout()">⟶</button>
                 </div>
             </div>
             
-            <!-- Navigation Bar -->
-            <div class="ios-nav-bar">
-                <h1 class="nav-title">Messages</h1>
-                <button class="edit-btn" onclick="toggleEditMode()">Edit</button>
+            <!-- Conversations Header -->
+            <div class="conversations-header">
+                <h2>Conversations</h2>
+                <button class="new-chat-btn" onclick="addFriend()">+ New</button>
             </div>
             
             <!-- Search Bar -->
-            <div class="ios-search-container">
-                <div class="ios-search-bar">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="searchInput" placeholder="Search" onkeyup="handleSearch(event)">
-                    <button class="cancel-search hidden" onclick="cancelSearch()">Cancel</button>
-                </div>
-                <button class="compose-new-btn" onclick="addFriend()" title="New Message">
-                    <span style="font-size: 20px;">✏️</span>
-                </button>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search conversations..." onkeyup="handleSearch(event)">
             </div>
             
             <!-- Conversations List -->
-            <div class="conversations-scroll">
-                <div id="friendsList" class="ios-conversations-list"></div>
+            <div class="conversations-list-container">
+                <div id="friendsList" class="conversations-list"></div>
             </div>
             
-            <!-- Search Results Overlay -->
-            <div id="searchResults" class="search-results-overlay hidden"></div>
+            <!-- Search Results -->
+            <div id="searchResults" class="search-results hidden"></div>
         </div>
         
         <!-- Chat View -->
         <div id="chatView" class="chat-view">
-            <!-- iOS Status Bar -->
-            <div class="ios-status-bar">
-                <span class="status-time" id="chatStatusTime"></span>
-                <div class="status-icons">
-                    <span class="signal">•••••</span>
-                    <span class="wifi">📶</span>
-                    <span class="battery">🔋</span>
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <button class="back-btn" onclick="backToConversations()">‹</button>
+                <div class="chat-info">
+                    <h3 id="chatName"></h3>
+                    <span id="chatUsername" class="chat-subtitle"></span>
                 </div>
-            </div>
-            
-            <!-- Chat Navigation Bar -->
-            <div class="ios-chat-nav">
-                <button class="ios-back-btn" onclick="backToConversations()">
-                    <span class="back-arrow">‹</span>
-                    <span class="back-text">Messages</span>
-                </button>
-                <div class="chat-nav-center">
-                    <div id="chatTitleName" class="chat-contact-name"></div>
-                    <div id="chatTitleUsername" class="chat-contact-username"></div>
+                <div class="chat-actions">
+                    <button class="edit-btn">✏️</button>
+                    <button class="delete-btn">🗑️</button>
                 </div>
-                <button class="chat-info-btn">ⓘ</button>
             </div>
             
             <!-- Messages Container -->
-            <div id="messages" class="ios-messages-container"></div>
+            <div id="messages" class="messages-container"></div>
             
-            <!-- Message Input Bar -->
-            <div class="ios-message-input-bar">
+            <!-- Message Input -->
+            <div class="message-input-container">
+                <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="handleMessageKeypress(event)" disabled>
                 <button class="attach-btn">+</button>
-                <div class="ios-input-wrapper">
-                    <input type="text" id="messageInput" placeholder="iMessage" onkeypress="handleMessageKeypress(event)" disabled>
-                </div>
-                <button onclick="sendMessage()" disabled id="sendBtn" class="ios-send-btn">↑</button>
+                <button onclick="sendMessage()" disabled id="sendBtn" class="send-btn">↑</button>
             </div>
         </div>
     </div>
@@ -125,7 +109,8 @@
     <script src="/js/auth.js"></script>
     <script src="/js/chat.js"></script>
     <script>
-        // Global variables are declared in chat.js
+        // Global variables
+        let isDarkMode = true;
 
         // Check if user is logged in on page load
         document.addEventListener('DOMContentLoaded', () => {
@@ -134,7 +119,6 @@
             // Check for logout parameter
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('logout')) {
-                // Clear any remaining cache and ensure logout
                 localStorage.clear();
                 console.log('Logout detected, clearing all cache...');
             }
@@ -147,7 +131,6 @@
             } else {
                 console.log('User not logged in, showing auth form...');
                 showAuthInterface();
-                // Clear forms safely
                 setTimeout(() => {
                     const loginUsernameEl = document.getElementById('loginUsername');
                     const loginPasswordEl = document.getElementById('loginPassword');
@@ -167,7 +150,6 @@
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value;
             
-            // Ensure username starts with @
             const formattedUsername = username.startsWith('@') ? username : '@' + username;
             
             console.log('Attempting login for:', formattedUsername);
@@ -195,7 +177,6 @@
             const displayName = document.getElementById('regDisplayName').value.trim();
             const password = document.getElementById('regPassword').value;
             
-            // Ensure username starts with @
             const formattedUsername = username.startsWith('@') ? username : '@' + username;
             
             console.log('Attempting registration for:', formattedUsername);
@@ -237,7 +218,7 @@
         function showChatInterface() {
             document.getElementById('authContainer').classList.add('hidden');
             document.getElementById('chatContainer').classList.remove('hidden');
-            updateUserTabInfo();
+            updateHeaderAvatar();
         }
 
         function showError(elementId, message) {
@@ -263,23 +244,11 @@
 
         function handleSearch(event) {
             const query = event.target.value;
-            const cancelBtn = document.querySelector('.cancel-search');
-            
-            if (query.length > 0) {
-                cancelBtn.classList.remove('hidden');
-                if (query.length > 2) {
-                    searchUsers(query);
-                }
+            if (query.length > 2) {
+                searchUsers(query);
             } else {
-                cancelBtn.classList.add('hidden');
                 document.getElementById('searchResults').classList.add('hidden');
             }
-        }
-
-        function cancelSearch() {
-            document.getElementById('searchInput').value = '';
-            document.querySelector('.cancel-search').classList.add('hidden');
-            document.getElementById('searchResults').classList.add('hidden');
         }
 
         function displaySearchResults(users) {
@@ -309,7 +278,8 @@
         function addFriendByUsername(username) {
             if (socket) {
                 socket.emit('add_friend', { friendUsername: username });
-                cancelSearch();
+                document.getElementById('searchResults').classList.add('hidden');
+                document.getElementById('searchInput').value = '';
             }
         }
 
@@ -320,55 +290,39 @@
             conversationsView.classList.add('active');
             chatView.classList.remove('active');
             
-            // Clear selected chat
             selectedChat = null;
             document.querySelectorAll('.conversation-item').forEach(el => {
                 el.classList.remove('active');
             });
         }
-        
-        function toggleEditMode() {
-            // Create a simple action sheet for logout
-            if (confirm('Do you want to logout?')) {
-                logout();
-            }
-        }
-        
-        function updateStatusTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            const statusTimeEl = document.getElementById('statusTime');
-            const chatStatusTimeEl = document.getElementById('chatStatusTime');
-            
-            if (statusTimeEl) statusTimeEl.textContent = timeString;
-            if (chatStatusTimeEl) chatStatusTimeEl.textContent = timeString;
-        }
-        
-        // Update time every minute
-        setInterval(updateStatusTime, 60000);
-        updateStatusTime();
 
-        function updateUserTabInfo() {
+        function updateHeaderAvatar() {
             if (currentUser) {
-                const avatarEl = document.getElementById('userAvatar');
-                const nameEl = document.getElementById('userName');
-                
+                const avatarEl = document.getElementById('headerAvatar');
                 if (avatarEl) {
                     avatarEl.textContent = currentUser.displayName[0].toUpperCase();
                 }
-                if (nameEl) {
-                    nameEl.textContent = currentUser.displayName;
-                }
             }
         }
 
-        // Override logout to use Auth module
+        function toggleMenu() {
+            console.log('Menu toggled');
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('light-theme');
+        }
+
+        function showUserMenu() {
+            console.log('User menu clicked');
+        }
+
         function logout() {
             Auth.logout();
         }
         
-        // Override selectChat for iOS navigation
+        // Override selectChat for new navigation
         window.selectChat = function(username, displayName) {
             selectedChat = username;
             
@@ -380,11 +334,11 @@
             chatView.classList.add('active');
             
             // Update chat header
-            const chatTitleName = document.getElementById('chatTitleName');
-            const chatTitleUsername = document.getElementById('chatTitleUsername');
+            const chatName = document.getElementById('chatName');
+            const chatUsername = document.getElementById('chatUsername');
             
-            if (chatTitleName) chatTitleName.textContent = displayName;
-            if (chatTitleUsername) chatTitleUsername.textContent = username;
+            if (chatName) chatName.textContent = displayName;
+            if (chatUsername) chatUsername.textContent = username;
             
             // Enable message input
             const messageInput = document.getElementById('messageInput');
@@ -393,7 +347,7 @@
             if (messageInput && sendBtn) {
                 messageInput.disabled = false;
                 sendBtn.disabled = false;
-                messageInput.placeholder = 'iMessage';
+                messageInput.placeholder = 'Type your message...';
             }
             
             // Load messages
