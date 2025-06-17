@@ -42,19 +42,32 @@ function setupSocketListeners() {
     });
 
     socket.on('private_message', (data) => {
+        console.log('Private message received:', data);
+        
+        // Determine which user this chat is with
+        const chatUsername = data.sender === currentUser.username ? data.recipientUsername : data.sender;
+        
         // Store message
-        const chatId = data.sender === currentUser.username ? data.recipient : data.sender;
-        if (!messages[chatId]) messages[chatId] = [];
-        messages[chatId].push(data);
+        if (!messages[chatUsername]) messages[chatUsername] = [];
+        messages[chatUsername].push(data);
         
         // Update UI if this chat is selected
-        if (selectedChat === chatId) {
+        if (selectedChat === chatUsername) {
+            console.log('Message is for current chat, displaying...');
             displayMessage(data);
+        } else {
+            console.log('Message is for different chat:', chatUsername, 'Current chat:', selectedChat);
         }
         
-        // Show notification for new messages
+        // Show notification for new messages from others
         if (data.sender !== currentUser.username) {
             showNotification(`New message from ${data.senderName}`);
+            
+            // Update friend list to show new message indicator (optional)
+            const friendEl = document.querySelector(`[data-username="${data.sender}"]`);
+            if (friendEl) {
+                friendEl.style.backgroundColor = '#e3f2fd';
+            }
         }
     });
 

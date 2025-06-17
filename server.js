@@ -232,9 +232,17 @@ io.on('connection', (socket) => {
         // Join user to their personal room
         socket.join(user.user_id);
         
-        // Get user's friends and notify them
+        // Get user's friends and join chat rooms with them
         const friends = await User.getFriends(user.user_id);
+        console.log(`User ${user.username} has ${friends.length} friends`);
+        
         for (const friend of friends) {
+          // Join room for each friend for instant message delivery
+          const roomId = [user.user_id, friend.user_id].sort().join('_');
+          socket.join(roomId);
+          console.log(`Joined room ${roomId} for friend ${friend.username}`);
+          
+          // Notify online friends that user is online
           if (friend.is_online) {
             socket.broadcast.to(friend.user_id).emit('user_online', {
               username: user.username,
@@ -289,6 +297,21 @@ io.on('connection', (socket) => {
       const roomId = [sender.user_id, recipient.user_id].sort().join('_');
       socket.join(roomId);
       
+      console.log('Created/joined room:', roomId);
+      
+      // If recipient is online, add them to room
+      const recipientSocket = [...activeUsers.values()].find(u => u.user_id === recipient.user_id);
+      if (recipientSocket) {
+        console.log('Recipient is online, adding to room:', recipientSocket.username);
+        const recipientSocketObj = io.sockets.sockets.get(recipientSocket.socketId);
+        if (recipientSocketObj) {
+          recipientSocketObj.join(roomId);
+          console.log('Recipient added to room successfully');
+        }
+      } else {
+        console.log('Recipient is offline');
+      }
+      
       // Send message to room (both users)
       const messageData = {
         id: savedMessage.id,
@@ -296,15 +319,17 @@ io.on('connection', (socket) => {
         sender: sender.username,
         senderName: sender.display_name,
         message,
-        timestamp: savedMessage.timestamp
+        timestamp: savedMessage.timestamp,
+        recipientUsername: recipient.username
       };
       
+      console.log('Emitting message to room:', roomId, 'Message:', messageData);
       io.to(roomId).emit('private_message', messageData);
       
-      // If recipient is online, add them to room and notify
-      const recipientSocket = [...activeUsers.values()].find(u => u.user_id === recipient.user_id);
+      // Also send directly to recipient if online (backup delivery)
       if (recipientSocket) {
-        io.sockets.sockets.get(recipientSocket.socketId)?.join(roomId);
+        console.log('Also sending direct message to recipient');
+        io.to(recipientSocket.socketId).emit('private_message', messageData);
       }
     } catch (error) {
       console.error('Private message error:', error);
