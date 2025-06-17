@@ -4,15 +4,35 @@ const Auth = {
     isLoggedIn() {
         try {
             const userStr = localStorage.getItem('user');
-            if (!userStr) return false;
+            const loginTime = localStorage.getItem('loginTime');
+            
+            if (!userStr || !loginTime) return false;
+            
+            // Check if login is older than 24 hours
+            const loginTimestamp = parseInt(loginTime);
+            const now = Date.now();
+            const twentyFourHours = 24 * 60 * 60 * 1000;
+            
+            if (now - loginTimestamp > twentyFourHours) {
+                console.log('Session expired (24+ hours old), clearing login data');
+                this.logout();
+                return false;
+            }
             
             const user = JSON.parse(userStr);
-            return user && user.username && user.userId;
+            const isValid = user && user.username && user.userId;
+            
+            if (!isValid) {
+                console.log('Invalid user data found, clearing');
+                this.logout();
+                return false;
+            }
+            
+            return true;
         } catch (error) {
             console.error('Error checking login status:', error);
             // Clear corrupted data
-            localStorage.removeItem('user');
-            localStorage.removeItem('token');
+            this.logout();
             return false;
         }
     },
@@ -43,8 +63,10 @@ const Auth = {
 
     // Save user to localStorage
     saveUser(user) {
+        console.log('Saving user to localStorage:', user.username);
         localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('token', user.userId); // Simple token for now
+        localStorage.setItem('token', user.userId);
+        localStorage.setItem('loginTime', Date.now().toString());
     },
 
     // Logout
@@ -52,6 +74,7 @@ const Auth = {
         console.log('Logging out user...');
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+        localStorage.removeItem('loginTime');
         // Use simple redirect to avoid complex logout parameter handling
         window.location.href = '/';
     },
@@ -78,6 +101,8 @@ const Auth = {
                 return { success: true, user: data.user };
             } else {
                 console.log('Login failed:', data.error);
+                // Clear any existing session data on failed login
+                this.logout();
                 return { success: false, error: data.error || 'Login failed' };
             }
         } catch (error) {

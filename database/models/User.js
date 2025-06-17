@@ -45,8 +45,16 @@ class User {
     }
     
     static async findByUsername(username) {
+        console.log(`[DB] Looking up user by username: ${username}`);
         const sql = 'SELECT * FROM users WHERE username = ?';
-        return await dbAsync.get(sql, [username]);
+        try {
+            const result = await dbAsync.get(sql, [username]);
+            console.log(`[DB] User lookup result: ${result ? 'Found' : 'Not found'}`);
+            return result;
+        } catch (error) {
+            console.error(`[DB] Error finding user ${username}:`, error);
+            throw error;
+        }
     }
     
     static async findByUserId(userId) {
@@ -55,15 +63,35 @@ class User {
     }
     
     static async validatePassword(username, password) {
-        const user = await this.findByUsername(username);
-        if (!user) return null;
+        console.log(`[AUTH] Validating password for user: ${username}`);
         
-        const isValid = await bcrypt.compare(password, user.password_hash);
-        if (!isValid) return null;
-        
-        // Return user without password hash
-        const { password_hash, ...userWithoutPassword } = user;
-        return userWithoutPassword;
+        try {
+            const user = await this.findByUsername(username);
+            console.log(`[AUTH] User found in database: ${user ? 'Yes' : 'No'}`);
+            
+            if (!user) {
+                console.log(`[AUTH] User ${username} not found in database`);
+                return null;
+            }
+            
+            console.log(`[AUTH] User data retrieved: userId=${user.user_id}, created=${user.created_at}`);
+            
+            const isValid = await bcrypt.compare(password, user.password_hash);
+            console.log(`[AUTH] Password validation result: ${isValid}`);
+            
+            if (!isValid) {
+                console.log(`[AUTH] Invalid password for user ${username}`);
+                return null;
+            }
+            
+            // Return user without password hash
+            const { password_hash, ...userWithoutPassword } = user;
+            console.log(`[AUTH] Authentication successful for user ${username}`);
+            return userWithoutPassword;
+        } catch (error) {
+            console.error(`[AUTH] Error validating password for ${username}:`, error);
+            throw error;
+        }
     }
     
     static async updateOnlineStatus(userId, isOnline) {
@@ -83,9 +111,17 @@ class User {
     }
     
     static async exists(username) {
+        console.log(`[DB] Checking if user exists: ${username}`);
         const sql = 'SELECT 1 FROM users WHERE username = ?';
-        const result = await dbAsync.get(sql, [username]);
-        return !!result;
+        try {
+            const result = await dbAsync.get(sql, [username]);
+            const exists = !!result;
+            console.log(`[DB] User ${username} exists: ${exists}`);
+            return exists;
+        } catch (error) {
+            console.error(`[DB] Error checking if user ${username} exists:`, error);
+            throw error;
+        }
     }
     
     // Friend-related methods

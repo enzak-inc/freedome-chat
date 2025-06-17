@@ -509,6 +509,9 @@ async function startServer() {
     await initializeDatabase();
     console.log('Database initialized successfully');
     
+    // Start periodic database health check
+    startDatabaseHealthCheck();
+    
     server.listen(PORT, () => {
       console.log(`Free Iran Server running on port ${PORT}`);
       console.log(`Access at: http://localhost:${PORT}`);
@@ -517,6 +520,19 @@ async function startServer() {
     console.error('Failed to start server:', error);
     process.exit(1);
   }
+}
+
+// Periodic database health check to prevent connection timeouts
+function startDatabaseHealthCheck() {
+  setInterval(async () => {
+    try {
+      // Simple query to keep connection alive
+      await User.findByUsername('@healthcheck');
+      console.log('[HEALTH] Database connection check passed');
+    } catch (error) {
+      console.error('[HEALTH] Database connection check failed:', error);
+    }
+  }, 5 * 60 * 1000); // Every 5 minutes
 }
 
 startServer();
