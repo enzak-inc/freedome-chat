@@ -157,10 +157,9 @@ body.light-theme {
     background: #000;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     padding: 0 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    position: relative;
 }
 
 .menu-btn {
@@ -170,8 +169,6 @@ body.light-theme {
     font-size: 24px;
     cursor: pointer;
     padding: 8px;
-    position: absolute;
-    left: 16px;
     transition: transform 0.2s;
 }
 
@@ -183,6 +180,25 @@ body.light-theme {
     font-size: 20px;
     font-weight: 600;
     color: #fff;
+    margin-left: 8px;
+    flex: 1;
+}
+
+.new-chat-btn {
+    background: none;
+    border: none;
+    color: #4a9eff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.new-chat-btn:hover {
+    background: rgba(74, 158, 255, 0.1);
+    transform: translateY(-1px);
 }
 
 /* Hamburger Menu */
@@ -360,34 +376,10 @@ body.light-theme {
     transform: translateX(0);
 }
 
-/* Conversations Header */
-.conversations-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 16px 16px;
-    background: #000;
-}
-
-.conversations-header h2 {
-    font-size: 32px;
-    font-weight: 700;
-    color: #fff;
-}
-
-.new-chat-btn {
-    background: none;
-    border: none;
-    color: #4a9eff;
-    font-size: 18px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 8px 16px;
-}
 
 /* Search Container */
 .search-container {
-    padding: 0 16px 16px;
+    padding: 16px;
     background: #000;
 }
 
@@ -812,7 +804,6 @@ body.light-theme .chat-container,
 body.light-theme .app-header,
 body.light-theme .conversations-view,
 body.light-theme .chat-view,
-body.light-theme .conversations-header,
 body.light-theme .search-container,
 body.light-theme .conversations-list-container,
 body.light-theme .conversation-item,
@@ -849,14 +840,14 @@ body.light-theme .message-input-container {
 body.light-theme .app-title,
 body.light-theme .menu-btn,
 body.light-theme .logout-btn,
-body.light-theme .conversations-header h2,
 body.light-theme .conversation-name,
 body.light-theme .chat-info h3,
 body.light-theme .back-btn,
 body.light-theme .user-name,
 body.light-theme .menu-username,
 body.light-theme .menu-text,
-body.light-theme .menu-close-btn {
+body.light-theme .menu-close-btn,
+body.light-theme .new-chat-btn {
     color: #000;
 }
 
