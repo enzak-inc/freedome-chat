@@ -11,10 +11,7 @@ const DB_CONFIG = {
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'iran_chat_db',
     charset: 'utf8mb4',
-    timezone: '+00:00',
-    acquireTimeout: 60000,
-    timeout: 60000,
-    reconnect: true
+    timezone: '+00:00'
 };
 
 const INIT_SQL_PATH = path.join(__dirname, 'init.sql');
