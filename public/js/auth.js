@@ -27,6 +27,8 @@ const Auth = {
     // Login function
     async login(username, password) {
         try {
+            console.log('Auth.login called with:', username);
+            
             const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
@@ -36,14 +38,18 @@ const Auth = {
             });
 
             const data = await response.json();
+            console.log('Login response:', data);
             
             if (response.ok && data.success) {
+                console.log('Login successful, saving user:', data.user);
                 this.saveUser(data.user);
                 return { success: true, user: data.user };
             } else {
+                console.log('Login failed:', data.error);
                 return { success: false, error: data.error || 'Login failed' };
             }
         } catch (error) {
+            console.log('Login network error:', error);
             return { success: false, error: 'Network error' };
         }
     },

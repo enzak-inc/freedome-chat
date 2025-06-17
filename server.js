@@ -205,7 +205,17 @@ io.on('connection', (socket) => {
   // User authentication via socket
   socket.on('authenticate', async (userData) => {
     try {
+      console.log('Socket authenticate request:', userData);
+      
+      if (!userData || !userData.username) {
+        console.log('Invalid authentication data received');
+        socket.emit('authenticated', { success: false, error: 'Invalid authentication data' });
+        return;
+      }
+      
       const user = await User.findByUsername(userData.username);
+      console.log('User found in database:', user ? 'Yes' : 'No');
+      
       if (user) {
         // Update online status
         await User.updateOnlineStatus(user.user_id, true);

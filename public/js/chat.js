@@ -8,8 +8,11 @@ let messages = {};
 // Initialize chat application
 function initChat() {
     currentUser = Auth.getCurrentUser();
-    if (!currentUser) {
-        window.location.href = '/';
+    console.log('initChat - currentUser:', currentUser);
+    
+    if (!currentUser || !currentUser.username) {
+        console.log('No valid user found, redirecting to login');
+        Auth.logout();
         return;
     }
 
@@ -17,6 +20,7 @@ function initChat() {
     socket = io();
     
     // Authenticate with server
+    console.log('Sending authenticate event with:', { username: currentUser.username });
     socket.emit('authenticate', { username: currentUser.username });
     
     // Set up event listeners
