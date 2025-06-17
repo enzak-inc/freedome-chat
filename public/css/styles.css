@@ -547,8 +547,22 @@ body.light-theme .unread-indicator {
     transform: translateX(0);
 }
 
+/* Adjust for fixed header and input */
+.chat-view .messages-container {
+    position: absolute;
+    top: 60px;
+    bottom: 76px;
+    left: 0;
+    right: 0;
+    padding: 16px;
+}
+
 /* Chat Header */
 .chat-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 60px;
     background: #000;
     display: flex;
@@ -556,6 +570,7 @@ body.light-theme .unread-indicator {
     padding: 0 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     gap: 12px;
+    z-index: 100;
 }
 
 .back-btn {
@@ -588,10 +603,11 @@ body.light-theme .unread-indicator {
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 16px;
+    padding: 76px 16px 16px;
     background: #000;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 /* Message Bubbles */
@@ -659,12 +675,18 @@ body.light-theme .unread-indicator {
 
 /* Message Input */
 .message-input-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     padding: 16px;
+    padding-bottom: 16px;
     background: #000;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     gap: 12px;
+    z-index: 100;
 }
 
 .message-input-container input {
@@ -828,7 +850,10 @@ body.light-theme .menu-header {
     background: #fff;
 }
 
-body.light-theme .app-header,
+body.light-theme .app-header {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
 body.light-theme .chat-header {
     border-bottom-color: rgba(0, 0, 0, 0.1);
 }
@@ -1182,6 +1207,20 @@ body.light-theme .notification {
     body.light-theme .chat-container {
         border-color: rgba(0, 0, 0, 0.1);
     }
+    
+    /* Contain fixed elements within desktop width */
+    .chat-header,
+    .message-input-container {
+        max-width: 480px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    body.light-theme .chat-header,
+    body.light-theme .message-input-container {
+        border-left: 1px solid rgba(0, 0, 0, 0.1);
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
+    }
 }
 
 /* Safe area adjustments for iOS */
@@ -1189,6 +1228,15 @@ body.light-theme .notification {
     .app-header {
         padding-top: env(safe-area-inset-top);
         height: calc(60px + env(safe-area-inset-top));
+    }
+    
+    .chat-header {
+        padding-top: env(safe-area-inset-top);
+        height: calc(60px + env(safe-area-inset-top));
+    }
+    
+    .chat-view .messages-container {
+        top: calc(60px + env(safe-area-inset-top));
     }
     
     .message-input-container {
