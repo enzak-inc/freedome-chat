@@ -46,18 +46,57 @@ html[dir="rtl"] .conversation-content {
     text-align: right;
 }
 
-html[dir="rtl"] .message {
+/* Override RTL settings for individual message direction detection */
+/* LTR Messages (English) */
+.message.ltr {
+    direction: ltr;
+    text-align: left;
+}
+
+.message.ltr.sent {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.message.ltr.received {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.message.ltr.sent .message-content {
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 20px;
+}
+
+.message.ltr.received .message-content {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 20px;
+}
+
+/* RTL Messages (Farsi/Arabic) */
+.message.rtl {
+    direction: rtl;
     text-align: right;
 }
 
-html[dir="rtl"] .message.sent {
-    margin-left: 0;
-    margin-right: auto;
+.message.rtl.sent {
+    align-self: flex-end;
+    align-items: flex-end;
 }
 
-html[dir="rtl"] .message.received {
-    margin-right: 0;
-    margin-left: auto;
+.message.rtl.received {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.message.rtl.sent .message-content {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 20px;
+}
+
+.message.rtl.received .message-content {
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 20px;
 }
 
 html[dir="rtl"] .chat-header {

@@ -268,7 +268,11 @@ function displayMessage(data) {
     
     const isSent = data.sender === currentUser.username;
     const messageEl = document.createElement('div');
-    messageEl.className = `message ${isSent ? 'sent' : 'received'}`;
+    
+    // Detect text direction
+    const textDirection = detectTextDirection(data.message);
+    messageEl.className = `message ${isSent ? 'sent' : 'received'} ${textDirection}`;
+    messageEl.dir = textDirection;
     
     const formattedTime = formatMessageTimestamp(data.timestamp);
     
@@ -446,6 +450,24 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Detect text direction (RTL for Farsi/Arabic, LTR for English/others)
+function detectTextDirection(text) {
+    // Persian/Farsi Unicode ranges: \u0600-\u06FF (Arabic block), \u0750-\u077F (Arabic Supplement)
+    // Also includes \u08A0-\u08FF (Arabic Extended-A), \uFB50-\uFDFF (Arabic Presentation Forms-A)
+    const rtlRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF]/;
+    
+    // Remove spaces, numbers, and punctuation for better detection
+    const cleanText = text.replace(/[\s\d\p{P}]/gu, '');
+    
+    // If text contains RTL characters, return RTL
+    if (rtlRegex.test(cleanText)) {
+        return 'rtl';
+    }
+    
+    // Default to LTR for English and other languages
+    return 'ltr';
 }
 
 function getLastMessage(username) {

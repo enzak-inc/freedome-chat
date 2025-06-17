@@ -165,7 +165,7 @@
             
             <!-- Message Input -->
             <div class="message-input-container">
-                <input type="text" id="messageInput" placeholder="پیام خود را بنویسید..." onkeypress="handleMessageKeypress(event)" disabled>
+                <input type="text" id="messageInput" placeholder="پیام خود را بنویسید..." onkeypress="handleMessageKeypress(event)" oninput="updateMessageInputDirection()" disabled>
                 <button onclick="sendMessage()" disabled id="sendBtn" class="send-btn">↑</button>
             </div>
         </div>
@@ -377,6 +377,27 @@
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
                 sendMessage();
+            }
+        }
+
+        // Detect text direction (duplicate from chat.js for HTML access)
+        function detectTextDirection(text) {
+            const rtlRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF]/;
+            const cleanText = text.replace(/[\s\d\p{P}]/gu, '');
+            return rtlRegex.test(cleanText) ? 'rtl' : 'ltr';
+        }
+
+        // Update message input direction based on text content
+        function updateMessageInputDirection() {
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput && messageInput.value.trim()) {
+                const direction = detectTextDirection(messageInput.value);
+                messageInput.dir = direction;
+                messageInput.style.textAlign = direction === 'rtl' ? 'right' : 'left';
+            } else if (messageInput) {
+                // Reset to default when empty
+                messageInput.dir = 'auto';
+                messageInput.style.textAlign = '';
             }
         }
 
