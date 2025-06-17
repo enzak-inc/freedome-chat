@@ -243,7 +243,7 @@ function displayMessage(data) {
     const messageEl = document.createElement('div');
     messageEl.className = `message ${isSent ? 'sent' : 'received'}`;
     
-    const time = new Date(data.timestamp).toLocaleTimeString();
+    const time = new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
     messageEl.innerHTML = `
         <div class="message-content">${escapeHtml(data.message)}</div>
