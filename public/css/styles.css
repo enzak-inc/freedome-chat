@@ -157,9 +157,10 @@ body.light-theme {
     background: #000;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     padding: 0 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
 }
 
 .menu-btn {
@@ -169,34 +170,77 @@ body.light-theme {
     font-size: 24px;
     cursor: pointer;
     padding: 8px;
+    position: absolute;
+    left: 16px;
+    transition: transform 0.2s;
+}
+
+.menu-btn:hover {
+    transform: scale(1.1);
 }
 
 .app-title {
     font-size: 20px;
     font-weight: 600;
     color: #fff;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
 }
 
-.header-actions {
+/* Hamburger Menu */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.menu-overlay.active {
+    opacity: 1;
+}
+
+.hamburger-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 100vh;
+    background: #1a1a1a;
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hamburger-menu.active {
+    transform: translateX(0);
+}
+
+.menu-header {
+    padding: 24px 20px 20px;
+    background: #000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.menu-user-info {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex: 1;
 }
 
-.theme-btn {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 8px;
-}
-
-.user-avatar-header {
-    width: 36px;
-    height: 36px;
+.menu-avatar {
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background: #4a9eff;
     color: white;
@@ -204,17 +248,97 @@ body.light-theme {
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    font-size: 16px;
-    cursor: pointer;
+    font-size: 20px;
 }
 
-.logout-btn {
+.menu-user-details {
+    flex: 1;
+}
+
+.menu-username {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.menu-display-name {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.menu-close-btn {
     background: none;
     border: none;
-    color: #fff;
+    color: rgba(255, 255, 255, 0.7);
     font-size: 24px;
     cursor: pointer;
-    padding: 8px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.menu-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.menu-items {
+    flex: 1;
+    padding: 8px 0;
+    overflow-y: auto;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.menu-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.menu-item:active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.menu-icon {
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+}
+
+.menu-text {
+    font-size: 16px;
+    color: #fff;
+    font-weight: 500;
+}
+
+.menu-separator {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 8px 20px;
+}
+
+.logout-item {
+    color: #ff4757;
+}
+
+.logout-item .menu-icon,
+.logout-item .menu-text {
+    color: #ff4757;
+}
+
+.logout-item:hover {
+    background: rgba(255, 71, 87, 0.1);
 }
 
 /* Conversations View */
@@ -694,7 +818,18 @@ body.light-theme .conversations-list-container,
 body.light-theme .conversation-item,
 body.light-theme .chat-header,
 body.light-theme .messages-container,
-body.light-theme .message-input-container {
+body.light-theme .message-input-container,
+body.light-theme .hamburger-menu,
+body.light-theme .menu-header {
+    background: #fff;
+}
+
+body.light-theme .hamburger-menu {
+    background: #f5f5f5;
+    border-right-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .menu-header {
     background: #fff;
 }
 
@@ -718,7 +853,10 @@ body.light-theme .conversations-header h2,
 body.light-theme .conversation-name,
 body.light-theme .chat-info h3,
 body.light-theme .back-btn,
-body.light-theme .user-name {
+body.light-theme .user-name,
+body.light-theme .menu-username,
+body.light-theme .menu-text,
+body.light-theme .menu-close-btn {
     color: #000;
 }
 
@@ -726,7 +864,8 @@ body.light-theme .conversation-details,
 body.light-theme .conversation-time,
 body.light-theme .chat-subtitle,
 body.light-theme .message-time,
-body.light-theme .user-username {
+body.light-theme .user-username,
+body.light-theme .menu-display-name {
     color: rgba(0, 0, 0, 0.5);
 }
 

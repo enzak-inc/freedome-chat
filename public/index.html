@@ -42,6 +42,52 @@
         </div>
     </div>
 
+    <!-- Hamburger Menu Overlay -->
+    <div id="menuOverlay" class="menu-overlay hidden" onclick="closeMenu()"></div>
+    
+    <!-- Hamburger Menu -->
+    <div id="hamburgerMenu" class="hamburger-menu">
+        <div class="menu-header">
+            <div class="menu-user-info">
+                <div class="menu-avatar" id="menuAvatar"></div>
+                <div class="menu-user-details">
+                    <div class="menu-username" id="menuUsername"></div>
+                    <div class="menu-display-name" id="menuDisplayName"></div>
+                </div>
+            </div>
+            <button class="menu-close-btn" onclick="closeMenu()">×</button>
+        </div>
+        
+        <div class="menu-items">
+            <div class="menu-item" onclick="editProfile()">
+                <span class="menu-icon">👤</span>
+                <span class="menu-text">Edit Profile</span>
+            </div>
+            
+            <div class="menu-item" onclick="toggleTheme()">
+                <span class="menu-icon">🌓</span>
+                <span class="menu-text" id="themeText">Light Mode</span>
+            </div>
+            
+            <div class="menu-item" onclick="showSettings()">
+                <span class="menu-icon">⚙️</span>
+                <span class="menu-text">Settings</span>
+            </div>
+            
+            <div class="menu-item" onclick="showAbout()">
+                <span class="menu-icon">ℹ️</span>
+                <span class="menu-text">About</span>
+            </div>
+            
+            <div class="menu-separator"></div>
+            
+            <div class="menu-item logout-item" onclick="logout()">
+                <span class="menu-icon">⟶</span>
+                <span class="menu-text">Logout</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Chat Container -->
     <div id="chatContainer" class="chat-container hidden">
         <!-- Conversations View -->
@@ -50,13 +96,6 @@
             <div class="app-header">
                 <button class="menu-btn" onclick="toggleMenu()">☰</button>
                 <h1 class="app-title">Iran Chat</h1>
-                <div class="header-actions">
-                    <button class="theme-btn" onclick="toggleTheme()">🌓</button>
-                    <div class="user-avatar-header" onclick="showUserMenu()">
-                        <span id="headerAvatar"></span>
-                    </div>
-                    <button class="logout-btn" onclick="logout()">⟶</button>
-                </div>
             </div>
             
             <!-- Conversations Header -->
@@ -298,24 +337,68 @@
 
         function updateHeaderAvatar() {
             if (currentUser) {
-                const avatarEl = document.getElementById('headerAvatar');
-                if (avatarEl) {
-                    avatarEl.textContent = currentUser.displayName[0].toUpperCase();
+                const menuAvatar = document.getElementById('menuAvatar');
+                const menuUsername = document.getElementById('menuUsername');
+                const menuDisplayName = document.getElementById('menuDisplayName');
+                
+                if (menuAvatar) {
+                    menuAvatar.textContent = currentUser.displayName[0].toUpperCase();
+                }
+                if (menuUsername) {
+                    menuUsername.textContent = currentUser.username;
+                }
+                if (menuDisplayName) {
+                    menuDisplayName.textContent = currentUser.displayName;
                 }
             }
         }
 
         function toggleMenu() {
-            console.log('Menu toggled');
+            const menu = document.getElementById('hamburgerMenu');
+            const overlay = document.getElementById('menuOverlay');
+            
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+            overlay.classList.toggle('hidden');
+        }
+
+        function closeMenu() {
+            const menu = document.getElementById('hamburgerMenu');
+            const overlay = document.getElementById('menuOverlay');
+            
+            menu.classList.remove('active');
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
         }
 
         function toggleTheme() {
             isDarkMode = !isDarkMode;
             document.body.classList.toggle('light-theme');
+            
+            // Update theme text
+            const themeText = document.getElementById('themeText');
+            if (themeText) {
+                themeText.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+            }
+            
+            closeMenu();
         }
 
-        function showUserMenu() {
-            console.log('User menu clicked');
+        function editProfile() {
+            closeMenu();
+            alert('Profile editing coming soon!');
+        }
+
+        function showSettings() {
+            closeMenu();
+            alert('Settings coming soon!');
+        }
+
+        function showAbout() {
+            closeMenu();
+            alert('Iran Chat v1.0\nSecure Local Messaging\nBuilt with Socket.IO');
         }
 
         function logout() {
