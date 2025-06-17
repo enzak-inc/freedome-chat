@@ -1006,6 +1006,172 @@ body.light-theme .send-btn:disabled {
     background: rgba(0, 0, 0, 0.05);
 }
 
+/* Edit Profile View */
+.edit-profile-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.edit-profile-view.active {
+    transform: translateX(0);
+}
+
+.edit-profile-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 15px;
+}
+
+.edit-profile-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+}
+
+.edit-profile-content {
+    flex: 1;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.field-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.profile-input {
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.profile-input:focus {
+    border-color: #4a9eff;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+}
+
+.profile-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.profile-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+.save-btn, .cancel-btn {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.save-btn {
+    background: #4a9eff;
+    color: white;
+}
+
+.save-btn:hover {
+    background: #3a8eef;
+    transform: translateY(-1px);
+}
+
+.save-btn:disabled {
+    background: rgba(74, 158, 255, 0.3);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+/* Light Theme Styles for Edit Profile */
+body.light-theme .edit-profile-view {
+    background: #f5f5f5;
+}
+
+body.light-theme .edit-profile-header {
+    background: rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .edit-profile-title {
+    color: #000;
+}
+
+body.light-theme .field-label {
+    color: rgba(0, 0, 0, 0.8);
+}
+
+body.light-theme .profile-input {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    color: #000;
+}
+
+body.light-theme .profile-input:focus {
+    border-color: #4a9eff;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+}
+
+body.light-theme .profile-input::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+body.light-theme .cancel-btn {
+    background: rgba(0, 0, 0, 0.05);
+    color: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+body.light-theme .cancel-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
 /* New Chat/Search View */
 .new-chat-view {
     position: absolute;

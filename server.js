@@ -207,6 +207,35 @@ app.get('/api/conversations/:userId', async (req, res) => {
   }
 });
 
+// Update user profile
+app.post('/api/user/update-profile', async (req, res) => {
+  try {
+    const { userId, displayName } = req.body;
+    
+    if (!userId || !displayName) {
+      return res.status(400).json({ error: 'User ID and display name are required' });
+    }
+    
+    // Validate display name (basic validation)
+    if (displayName.trim().length < 1 || displayName.trim().length > 100) {
+      return res.status(400).json({ error: 'Display name must be between 1 and 100 characters' });
+    }
+    
+    // Update user in database
+    const success = await User.updateDisplayName(userId, displayName.trim());
+    
+    if (success) {
+      res.json({ success: true, message: 'Profile updated successfully' });
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
+    
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
 // Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);

@@ -71,6 +71,12 @@ class User {
         await dbAsync.run(sql, [isOnline ? 1 : 0, userId]);
     }
     
+    static async updateDisplayName(userId, displayName) {
+        const sql = 'UPDATE users SET display_name = ? WHERE user_id = ?';
+        const result = await dbAsync.run(sql, [displayName, userId]);
+        return result.changes > 0;
+    }
+    
     static async search(query, limit = 10) {
         const sql = `
             SELECT username, display_name, is_online 

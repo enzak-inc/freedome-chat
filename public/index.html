@@ -170,6 +170,29 @@
             </div>
         </div>
         
+        <!-- Edit Profile View -->
+        <div id="editProfileView" class="edit-profile-view">
+            <!-- Edit Profile Header -->
+            <div class="edit-profile-header">
+                <button class="back-btn" onclick="backToConversations()">‹</button>
+                <h2 class="edit-profile-title">ویرایش پروفایل</h2>
+            </div>
+            
+            <!-- Profile Form -->
+            <div class="edit-profile-content">
+                <div class="profile-field">
+                    <label for="editDisplayName" class="field-label">نام نمایشی</label>
+                    <input type="text" id="editDisplayName" class="profile-input" placeholder="نام نمایشی خود را وارد کنید">
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="profile-actions">
+                    <button class="save-btn" onclick="saveProfile()">ذخیره</button>
+                    <button class="cancel-btn" onclick="cancelEditProfile()">لغو</button>
+                </div>
+            </div>
+        </div>
+
         <!-- New Chat/Search View -->
         <div id="newChatView" class="new-chat-view">
             <!-- New Chat Header -->
@@ -446,10 +469,12 @@
             const conversationsView = document.getElementById('conversationsView');
             const chatView = document.getElementById('chatView');
             const newChatView = document.getElementById('newChatView');
+            const editProfileView = document.getElementById('editProfileView');
             
             conversationsView.classList.add('active');
             chatView.classList.remove('active');
             newChatView.classList.remove('active');
+            editProfileView.classList.remove('active');
             
             selectedChat = null;
             document.querySelectorAll('.conversation-item').forEach(el => {
@@ -510,7 +535,89 @@
 
         function editProfile() {
             closeMenu();
-            alert('ویرایش پروفایل به زودی!');
+            showEditProfileView();
+        }
+
+        function showEditProfileView() {
+            const conversationsView = document.getElementById('conversationsView');
+            const chatView = document.getElementById('chatView');
+            const newChatView = document.getElementById('newChatView');
+            const editProfileView = document.getElementById('editProfileView');
+            
+            // Hide all other views
+            conversationsView.classList.remove('active');
+            chatView.classList.remove('active');
+            newChatView.classList.remove('active');
+            
+            // Show edit profile view
+            editProfileView.classList.add('active');
+            
+            // Populate current display name
+            const editDisplayName = document.getElementById('editDisplayName');
+            if (editDisplayName && currentUser) {
+                editDisplayName.value = currentUser.displayName || '';
+                editDisplayName.focus();
+            }
+        }
+
+        function cancelEditProfile() {
+            backToConversations();
+        }
+
+        async function saveProfile() {
+            const editDisplayName = document.getElementById('editDisplayName');
+            const saveBtn = document.querySelector('.save-btn');
+            
+            if (!editDisplayName || !currentUser) return;
+            
+            const newDisplayName = editDisplayName.value.trim();
+            if (!newDisplayName) {
+                alert('لطفاً نام نمایشی را وارد کنید');
+                return;
+            }
+            
+            // Disable save button during save
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'در حال ذخیره...';
+            
+            try {
+                const response = await fetch('/api/user/update-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: currentUser.userId,
+                        displayName: newDisplayName
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Update current user data
+                    currentUser.displayName = newDisplayName;
+                    Auth.saveUser(currentUser);
+                    
+                    // Update UI
+                    updateHeaderAvatar();
+                    
+                    // Show success message
+                    alert('پروفایل با موفقیت به‌روزرسانی شد');
+                    
+                    // Go back to conversations
+                    backToConversations();
+                } else {
+                    alert('خطا در به‌روزرسانی پروفایل: ' + (result.error || 'خطای نامشخص'));
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('خطا در اتصال به سرور');
+            } finally {
+                // Re-enable save button
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'ذخیره';
+            }
         }
 
         function showSettings() {
