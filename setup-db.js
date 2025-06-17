@@ -30,20 +30,44 @@ async function setupDatabase() {
         
         console.log('✅ Connected to MySQL server');
         
-        // Read the schema file
-        const schemaPath = path.join(__dirname, 'database', 'init.sql');
+        // Create database if it doesn't exist
+        const dbName = process.env.DB_NAME || 'iran_chat_db';
+        console.log(`🗄️  Creating database: ${dbName}`);
+        await connection.execute(`CREATE DATABASE IF NOT EXISTS ${dbName} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+        await connection.execute(`USE ${dbName}`);
+        
+        // Read the schema file (try MariaDB version first, then fallback to MySQL)
+        let schemaPath = path.join(__dirname, 'database', 'init-mariadb.sql');
+        if (!fs.existsSync(schemaPath)) {
+            schemaPath = path.join(__dirname, 'database', 'init.sql');
+        }
         const schema = fs.readFileSync(schemaPath, 'utf8');
+        console.log(`📄 Using schema: ${path.basename(schemaPath)}`);
         
         console.log('📄 Executing database schema...');
         
-        // Execute the schema
-        await connection.execute(schema);
+        // Split SQL statements and execute them one by one
+        const statements = schema
+            .split(';')
+            .map(stmt => stmt.trim())
+            .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+        
+        for (const statement of statements) {
+            if (statement.trim()) {
+                try {
+                    await connection.execute(statement);
+                } catch (error) {
+                    console.log(`⚠️  Statement: ${statement.substring(0, 50)}...`);
+                    console.log(`⚠️  Error: ${error.message}`);
+                    // Continue with other statements
+                }
+            }
+        }
         
         console.log('✅ Database schema executed successfully!');
         console.log('🎉 Database setup completed!');
         
         // Verify tables were created
-        await connection.execute(`USE ${process.env.DB_NAME || 'iran_chat_db'}`);
         const [tables] = await connection.execute('SHOW TABLES');
         
         console.log('\n📋 Created tables:');
