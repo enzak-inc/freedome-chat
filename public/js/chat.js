@@ -132,11 +132,20 @@ function selectChat(username, displayName) {
     
     // Show chat area
     const chatArea = document.getElementById('chatArea');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    
     if (chatArea) {
-        chatArea.style.display = 'block';
+        chatArea.classList.remove('hidden');
         document.getElementById('chatHeader').innerHTML = `
             <h3>${displayName} <span class="chat-username">${username}</span></h3>
         `;
+    }
+    
+    // Enable message input
+    if (messageInput && sendBtn) {
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
     }
     
     // Load messages
@@ -146,7 +155,7 @@ function selectChat(username, displayName) {
 // Send message
 function sendMessage() {
     const input = document.getElementById('messageInput');
-    if (!input || !input.value.trim() || !selectedChat) return;
+    if (!input || !input.value.trim() || !selectedChat || !socket) return;
     
     const message = input.value.trim();
     
@@ -196,7 +205,9 @@ async function addFriend() {
     // Ensure username starts with @
     const friendUsername = username.startsWith('@') ? username : '@' + username;
     
-    socket.emit('add_friend', { friendUsername });
+    if (socket) {
+        socket.emit('add_friend', { friendUsername });
+    }
 }
 
 // Search users
@@ -213,14 +224,14 @@ async function searchUsers(query) {
 // Update user info in UI
 function updateUserInfo() {
     const userInfoEl = document.getElementById('userInfo');
-    if (userInfoEl) {
+    if (userInfoEl && currentUser) {
         userInfoEl.innerHTML = `
             <div class="user-avatar">${currentUser.displayName[0].toUpperCase()}</div>
             <div class="user-details">
                 <div class="user-name">${currentUser.displayName}</div>
                 <div class="user-username">${currentUser.username}</div>
             </div>
-            <button onclick="Auth.logout()" class="logout-btn">Logout</button>
+            <button onclick="logout()" class="logout-btn">Logout</button>
         `;
     }
 }
