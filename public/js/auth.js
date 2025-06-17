@@ -2,13 +2,43 @@
 const Auth = {
     // Check if user is logged in
     isLoggedIn() {
-        return localStorage.getItem('user') !== null;
+        try {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return false;
+            
+            const user = JSON.parse(userStr);
+            return user && user.username && user.userId;
+        } catch (error) {
+            console.error('Error checking login status:', error);
+            // Clear corrupted data
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            return false;
+        }
     },
 
     // Get current user
     getCurrentUser() {
-        const userStr = localStorage.getItem('user');
-        return userStr ? JSON.parse(userStr) : null;
+        try {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return null;
+            
+            const user = JSON.parse(userStr);
+            if (user && user.username && user.userId) {
+                return user;
+            } else {
+                // Invalid user data, clear it
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+                return null;
+            }
+        } catch (error) {
+            console.error('Error getting current user:', error);
+            // Clear corrupted data
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            return null;
+        }
     },
 
     // Save user to localStorage
@@ -19,13 +49,11 @@ const Auth = {
 
     // Logout
     logout() {
+        console.log('Logging out user...');
         localStorage.removeItem('user');
         localStorage.removeItem('token');
-        // Force reload to clear any cached states
-        window.location.href = '/?logout=1';
-        setTimeout(() => {
-            window.location.reload(true);
-        }, 100);
+        // Use simple redirect to avoid complex logout parameter handling
+        window.location.href = '/';
     },
 
     // Login function

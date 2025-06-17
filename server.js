@@ -510,7 +510,7 @@ async function startServer() {
     console.log('Database initialized successfully');
     
     server.listen(PORT, () => {
-      console.log(`Iran Chat Server running on port ${PORT}`);
+      console.log(`Free Iran Server running on port ${PORT}`);
       console.log(`Access at: http://localhost:${PORT}`);
     });
   } catch (error) {
