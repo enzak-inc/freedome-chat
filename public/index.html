@@ -6,6 +6,42 @@
     <title>Free Iran - Secure Local Messaging</title>
     <link rel="stylesheet" href="/css/styles.css">
     <script src="/socket.io/socket.io.js"></script>
+    <style>
+        /* Prevent flash of login page for logged-in users */
+        .auth-container,
+        .chat-container {
+            display: none !important;
+        }
+        body.show-auth .auth-container {
+            display: flex !important;
+        }
+        body.show-chat .chat-container {
+            display: flex !important;
+        }
+        /* Override hidden class */
+        body.show-chat .chat-container.hidden {
+            display: flex !important;
+        }
+    </style>
+    <script>
+        // Immediate check before any rendering to prevent flash
+        (function() {
+            try {
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    if (user && user.username && user.userId) {
+                        document.documentElement.className += ' show-chat';
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('Pre-auth check error:', error);
+            }
+            // Default to showing auth
+            document.documentElement.className += ' show-auth';
+        })();
+    </script>
 </head>
 <body>
     <!-- Login/Register Container -->
@@ -274,13 +310,11 @@
         }
 
         function showAuthInterface() {
-            document.getElementById('authContainer').classList.remove('hidden');
-            document.getElementById('chatContainer').classList.add('hidden');
+            document.body.className = document.body.className.replace(/show-\w+/g, '') + ' show-auth';
         }
 
         function showChatInterface() {
-            document.getElementById('authContainer').classList.add('hidden');
-            document.getElementById('chatContainer').classList.remove('hidden');
+            document.body.className = document.body.className.replace(/show-\w+/g, '') + ' show-chat';
             updateHeaderAvatar();
         }
 
