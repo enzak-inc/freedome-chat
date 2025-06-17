@@ -1048,6 +1048,22 @@ body.light-theme .send-btn:disabled {
     display: flex;
     flex-direction: column;
     gap: 30px;
+    overflow-y: auto;
+}
+
+.profile-section {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 10px 0;
 }
 
 .profile-field {
@@ -1140,6 +1156,14 @@ body.light-theme .edit-profile-header {
 
 body.light-theme .edit-profile-title {
     color: #000;
+}
+
+body.light-theme .profile-section {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .section-title {
+    color: rgba(0, 0, 0, 0.9);
 }
 
 body.light-theme .field-label {

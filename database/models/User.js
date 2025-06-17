@@ -77,6 +77,25 @@ class User {
         return result.changes > 0;
     }
     
+    static async findByUserId(userId) {
+        const sql = 'SELECT * FROM users WHERE user_id = ?';
+        return await dbAsync.get(sql, [userId]);
+    }
+    
+    static async validatePasswordById(userId, password) {
+        const user = await this.findByUserId(userId);
+        if (!user) return false;
+        
+        return await bcrypt.compare(password, user.password_hash);
+    }
+    
+    static async updatePassword(userId, newPassword) {
+        const passwordHash = await bcrypt.hash(newPassword, 12);
+        const sql = 'UPDATE users SET password_hash = ? WHERE user_id = ?';
+        const result = await dbAsync.run(sql, [passwordHash, userId]);
+        return result.changes > 0;
+    }
+    
     static async search(query, limit = 10) {
         const sql = `
             SELECT username, display_name, is_online 

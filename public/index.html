@@ -105,11 +105,6 @@
                 <span class="menu-text" id="themeText">حالت روشن</span>
             </div>
             
-            <div class="menu-item" onclick="showSettings()">
-                <span class="menu-icon">⚙️</span>
-                <span class="menu-text">تنظیمات</span>
-            </div>
-            
             <div class="menu-item" onclick="showAbout()">
                 <span class="menu-icon">ℹ️</span>
                 <span class="menu-text">درباره ما</span>
@@ -183,6 +178,30 @@
                 <div class="profile-field">
                     <label for="editDisplayName" class="field-label">نام نمایشی</label>
                     <input type="text" id="editDisplayName" class="profile-input" placeholder="نام نمایشی خود را وارد کنید">
+                </div>
+                
+                <!-- Password Change Section -->
+                <div class="profile-section">
+                    <h3 class="section-title">تغییر رمز عبور</h3>
+                    
+                    <div class="profile-field">
+                        <label for="currentPassword" class="field-label">رمز عبور فعلی</label>
+                        <input type="password" id="currentPassword" class="profile-input" placeholder="رمز عبور فعلی را وارد کنید">
+                    </div>
+                    
+                    <div class="profile-field">
+                        <label for="newPassword" class="field-label">رمز عبور جدید</label>
+                        <input type="password" id="newPassword" class="profile-input" placeholder="رمز عبور جدید را وارد کنید">
+                    </div>
+                    
+                    <div class="profile-field">
+                        <label for="confirmPassword" class="field-label">تکرار رمز عبور جدید</label>
+                        <input type="password" id="confirmPassword" class="profile-input" placeholder="رمز عبور جدید را مجدداً وارد کنید">
+                    </div>
+                    
+                    <div class="password-hint">
+                        رمز عبور باید حداقل ۸ کاراکتر باشد و شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه
+                    </div>
                 </div>
                 
                 <!-- Action Buttons -->
@@ -552,20 +571,38 @@
             // Show edit profile view
             editProfileView.classList.add('active');
             
-            // Populate current display name
+            // Populate current display name and clear password fields
             const editDisplayName = document.getElementById('editDisplayName');
+            const currentPassword = document.getElementById('currentPassword');
+            const newPassword = document.getElementById('newPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            
             if (editDisplayName && currentUser) {
                 editDisplayName.value = currentUser.displayName || '';
                 editDisplayName.focus();
             }
+            
+            // Clear password fields
+            if (currentPassword) currentPassword.value = '';
+            if (newPassword) newPassword.value = '';
+            if (confirmPassword) confirmPassword.value = '';
         }
 
         function cancelEditProfile() {
             backToConversations();
         }
 
+        // Password validation function
+        function validatePassword(password) {
+            const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])/;
+            return password.length >= 8 && strongRegex.test(password);
+        }
+
         async function saveProfile() {
             const editDisplayName = document.getElementById('editDisplayName');
+            const currentPassword = document.getElementById('currentPassword');
+            const newPassword = document.getElementById('newPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
             const saveBtn = document.querySelector('.save-btn');
             
             if (!editDisplayName || !currentUser) return;
@@ -576,20 +613,54 @@
                 return;
             }
             
+            // Check if password change is requested
+            const isPasswordChange = currentPassword.value || newPassword.value || confirmPassword.value;
+            
+            if (isPasswordChange) {
+                // Validate password fields
+                if (!currentPassword.value) {
+                    alert('لطفاً رمز عبور فعلی را وارد کنید');
+                    return;
+                }
+                
+                if (!newPassword.value) {
+                    alert('لطفاً رمز عبور جدید را وارد کنید');
+                    return;
+                }
+                
+                if (newPassword.value !== confirmPassword.value) {
+                    alert('رمز عبور جدید و تکرار آن باید یکسان باشند');
+                    return;
+                }
+                
+                if (!validatePassword(newPassword.value)) {
+                    alert('رمز عبور جدید باید حداقل ۸ کاراکتر باشد و شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه');
+                    return;
+                }
+            }
+            
             // Disable save button during save
             saveBtn.disabled = true;
             saveBtn.textContent = 'در حال ذخیره...';
             
             try {
+                const requestData = {
+                    userId: currentUser.userId,
+                    displayName: newDisplayName
+                };
+                
+                // Add password data if password change is requested
+                if (isPasswordChange) {
+                    requestData.currentPassword = currentPassword.value;
+                    requestData.newPassword = newPassword.value;
+                }
+                
                 const response = await fetch('/api/user/update-profile', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        userId: currentUser.userId,
-                        displayName: newDisplayName
-                    })
+                    body: JSON.stringify(requestData)
                 });
                 
                 const result = await response.json();
@@ -603,7 +674,10 @@
                     updateHeaderAvatar();
                     
                     // Show success message
-                    alert('پروفایل با موفقیت به‌روزرسانی شد');
+                    const message = isPasswordChange ? 
+                        'پروفایل و رمز عبور با موفقیت به‌روزرسانی شد' : 
+                        'پروفایل با موفقیت به‌روزرسانی شد';
+                    alert(message);
                     
                     // Go back to conversations
                     backToConversations();
@@ -620,10 +694,6 @@
             }
         }
 
-        function showSettings() {
-            closeMenu();
-            alert('تنظیمات به زودی!');
-        }
 
         function showAbout() {
             closeMenu();

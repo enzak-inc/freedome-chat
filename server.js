@@ -210,7 +210,7 @@ app.get('/api/conversations/:userId', async (req, res) => {
 // Update user profile
 app.post('/api/user/update-profile', async (req, res) => {
   try {
-    const { userId, displayName } = req.body;
+    const { userId, displayName, currentPassword, newPassword } = req.body;
     
     if (!userId || !displayName) {
       return res.status(400).json({ error: 'User ID and display name are required' });
@@ -221,13 +221,46 @@ app.post('/api/user/update-profile', async (req, res) => {
       return res.status(400).json({ error: 'Display name must be between 1 and 100 characters' });
     }
     
-    // Update user in database
-    const success = await User.updateDisplayName(userId, displayName.trim());
+    // Check if password change is requested
+    const isPasswordChange = currentPassword && newPassword;
     
-    if (success) {
-      res.json({ success: true, message: 'Profile updated successfully' });
+    if (isPasswordChange) {
+      // Validate current password
+      const user = await User.findByUserId(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const isCurrentPasswordValid = await User.validatePasswordById(userId, currentPassword);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ error: 'Current password is incorrect' });
+      }
+      
+      // Validate new password strength
+      if (!validatePassword(newPassword)) {
+        return res.status(400).json({ 
+          error: 'New password must be 8+ characters with uppercase, lowercase, number, and special character' 
+        });
+      }
+      
+      // Update both display name and password
+      const passwordUpdateSuccess = await User.updatePassword(userId, newPassword);
+      const nameUpdateSuccess = await User.updateDisplayName(userId, displayName.trim());
+      
+      if (passwordUpdateSuccess && nameUpdateSuccess) {
+        res.json({ success: true, message: 'Profile and password updated successfully' });
+      } else {
+        res.status(500).json({ error: 'Failed to update profile' });
+      }
     } else {
-      res.status(404).json({ error: 'User not found' });
+      // Update only display name
+      const success = await User.updateDisplayName(userId, displayName.trim());
+      
+      if (success) {
+        res.json({ success: true, message: 'Profile updated successfully' });
+      } else {
+        res.status(404).json({ error: 'User not found' });
+      }
     }
     
   } catch (error) {
