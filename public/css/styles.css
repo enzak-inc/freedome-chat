@@ -14,36 +14,11 @@ html, body {
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: Tahoma, 'Segoe UI', 'Iranian Sans', 'B Yekan', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: #000;
     color: #fff;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-}
-
-/* RTL Support for Farsi */
-html[dir="rtl"] body {
-    font-family: Tahoma, 'Segoe UI', 'Iranian Sans', 'B Yekan', sans-serif;
-    direction: rtl;
-    text-align: right;
-}
-
-html[dir="rtl"] .app-header {
-    flex-direction: row-reverse;
-}
-
-html[dir="rtl"] .menu-btn {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-html[dir="rtl"] .new-chat-btn {
-    margin-right: 0;
-    margin-left: 0;
-}
-
-html[dir="rtl"] .conversation-content {
-    text-align: right;
 }
 
 /* Override RTL settings for individual message direction detection */
@@ -99,33 +74,6 @@ html[dir="rtl"] .conversation-content {
     border-bottom-left-radius: 20px;
 }
 
-html[dir="rtl"] .chat-header {
-    flex-direction: row-reverse;
-}
-
-html[dir="rtl"] .back-btn {
-    transform: scaleX(-1);
-}
-
-html[dir="rtl"] .new-chat-header {
-    flex-direction: row-reverse;
-}
-
-html[dir="rtl"] .menu-items {
-    text-align: right;
-}
-
-html[dir="rtl"] .conversation-header-info {
-    text-align: right;
-}
-
-html[dir="rtl"] .search-input-container {
-    flex-direction: row-reverse;
-}
-
-html[dir="rtl"] .message-input-container {
-    flex-direction: row-reverse;
-}
 
 /* Light Theme */
 body.light-theme {
