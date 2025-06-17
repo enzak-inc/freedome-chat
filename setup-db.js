@@ -43,14 +43,22 @@ async function setupDatabase() {
         }
         const schema = fs.readFileSync(schemaPath, 'utf8');
         console.log(`📄 Using schema: ${path.basename(schemaPath)}`);
+        console.log(`📄 Schema file size: ${schema.length} characters`);
         
         console.log('📄 Executing database schema...');
         
         // Split SQL statements and execute them one by one
-        const statements = schema
-            .split(';')
+        const allStatements = schema.split(';');
+        console.log(`📋 Raw statements after split: ${allStatements.length}`);
+        
+        const statements = allStatements
             .map(stmt => stmt.trim())
             .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+        
+        console.log('📋 First few statements:');
+        statements.slice(0, 3).forEach((stmt, i) => {
+            console.log(`${i + 1}: ${stmt.substring(0, 100)}...`);
+        });
         
         console.log(`📋 Found ${statements.length} SQL statements to execute`);
         
