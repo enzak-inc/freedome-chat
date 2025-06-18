@@ -2119,6 +2119,45 @@ body.light-theme .notification {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* Light theme styles for search guide */
+body.light-theme .search-guide h4 {
+    color: #007aff;
+}
+
+body.light-theme .guide-list li {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .guide-list li:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 122, 255, 0.3);
+}
+
+body.light-theme .guide-text {
+    color: #333;
+}
+
+body.light-theme .guide-text strong {
+    color: #007aff;
+}
+
+body.light-theme .guide-text code {
+    background: rgba(0, 122, 255, 0.1);
+    color: #007aff;
+    border: 1px solid rgba(0, 122, 255, 0.2);
+}
+
+body.light-theme .search-tip {
+    background: rgba(52, 199, 89, 0.1);
+    border: 1px solid rgba(52, 199, 89, 0.3);
+    color: #2d7d3a;
+}
+
+body.light-theme .search-placeholder p {
+    color: #666;
+}
+
 /* Utility Classes */
 .hidden {
     display: none !important;
