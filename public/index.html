@@ -68,8 +68,36 @@
                 <form onsubmit="handleRegister(event)">
                     <input type="text" id="regUsername" placeholder="@نام‌کاربری" required pattern="@[a-zA-Z0-9_]{3,}" value="@">
                     <input type="text" id="regDisplayName" placeholder="نام نمایشی" required>
-                    <input type="password" id="regPassword" placeholder="رمز عبور (حداقل ۸ کاراکتر)" required minlength="8">
-                    <div class="password-hint">رمز عبور باید حداقل ۸ کاراکتر باشد و شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه</div>
+                    <div class="password-input-container">
+                        <input type="text" id="regPassword" placeholder="رمز عبور (حداقل ۸ کاراکتر)" required minlength="8" oninput="validatePasswordLive()">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('regPassword', this)" title="نمایش/مخفی کردن رمز عبور">
+                            👁️
+                        </button>
+                    </div>
+                    
+                    <!-- Live Password Validation -->
+                    <div class="password-validation" id="passwordValidation">
+                        <div class="validation-item" id="lengthCheck">
+                            <span class="validation-icon">⚠️</span>
+                            <span class="validation-text">حداقل ۸ کاراکتر</span>
+                        </div>
+                        <div class="validation-item" id="uppercaseCheck">
+                            <span class="validation-icon">⚠️</span>
+                            <span class="validation-text">حرف بزرگ انگلیسی (A-Z)</span>
+                        </div>
+                        <div class="validation-item" id="lowercaseCheck">
+                            <span class="validation-icon">⚠️</span>
+                            <span class="validation-text">حرف کوچک انگلیسی (a-z)</span>
+                        </div>
+                        <div class="validation-item" id="numberCheck">
+                            <span class="validation-icon">⚠️</span>
+                            <span class="validation-text">عدد (0-9)</span>
+                        </div>
+                        <div class="validation-item" id="specialCheck">
+                            <span class="validation-icon">⚠️</span>
+                            <span class="validation-text">کاراکتر ویژه (!@#$%^&*)</span>
+                        </div>
+                    </div>
                     <button type="submit">ثبت‌نام</button>
                 </form>
                 <p>قبلاً حساب کاربری دارید؟ <a href="#" onclick="showLogin()">ورود</a></p>
@@ -95,6 +123,11 @@
         </div>
         
         <div class="menu-items">
+            <div class="menu-item" onclick="showInviteFriend()">
+                <span class="menu-icon">📨</span>
+                <span class="menu-text">دعوت از دوست</span>
+            </div>
+            
             <div class="menu-item" onclick="editProfile()">
                 <span class="menu-icon">👤</span>
                 <span class="menu-text">ویرایش پروفایل</span>
@@ -103,11 +136,6 @@
             <div class="menu-item" onclick="toggleTheme()">
                 <span class="menu-icon">🌓</span>
                 <span class="menu-text" id="themeText">حالت روشن</span>
-            </div>
-            
-            <div class="menu-item" onclick="showInviteFriend()">
-                <span class="menu-icon">📨</span>
-                <span class="menu-text">دعوت از دوست</span>
             </div>
             
             <div class="menu-item" onclick="showAbout()">
@@ -1019,6 +1047,71 @@
             // Load messages
             loadMessages(username);
         };
+
+        // Password visibility toggle
+        function togglePasswordVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.innerHTML = '🙈';
+                button.title = 'مخفی کردن رمز عبور';
+            } else {
+                input.type = 'password';
+                button.innerHTML = '👁️';
+                button.title = 'نمایش رمز عبور';
+            }
+        }
+
+        // Live password validation
+        function validatePasswordLive() {
+            const password = document.getElementById('regPassword').value;
+            
+            // Check each requirement
+            const checks = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+            };
+            
+            // Update UI for each check
+            updateValidationItem('lengthCheck', checks.length);
+            updateValidationItem('uppercaseCheck', checks.uppercase);
+            updateValidationItem('lowercaseCheck', checks.lowercase);
+            updateValidationItem('numberCheck', checks.number);
+            updateValidationItem('specialCheck', checks.special);
+            
+            // Show/hide validation container
+            const validationContainer = document.getElementById('passwordValidation');
+            if (password.length > 0) {
+                validationContainer.style.display = 'block';
+            } else {
+                validationContainer.style.display = 'none';
+            }
+        }
+
+        // Update individual validation item
+        function updateValidationItem(itemId, isValid) {
+            const item = document.getElementById(itemId);
+            const icon = item.querySelector('.validation-icon');
+            
+            if (isValid) {
+                item.className = 'validation-item valid';
+                icon.textContent = '✅';
+            } else {
+                item.className = 'validation-item invalid';
+                icon.textContent = '⚠️';
+            }
+        }
+
+        // Initialize password validation on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordValidation = document.getElementById('passwordValidation');
+            if (passwordValidation) {
+                passwordValidation.style.display = 'none'; // Hide initially
+            }
+        });
     </script>
 </body>
 </html>

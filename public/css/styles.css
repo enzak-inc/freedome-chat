@@ -192,6 +192,81 @@ body.light-theme {
     margin-top: 10px;
 }
 
+/* Password Input Container */
+.password-input-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.6);
+    transition: color 0.3s;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.password-toggle:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Password Validation */
+.password-validation {
+    margin: 12px 0;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.validation-item {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+    font-size: 13px;
+    transition: all 0.3s ease;
+}
+
+.validation-item.valid {
+    color: #2ecc71;
+}
+
+.validation-item.invalid {
+    color: #e74c3c;
+}
+
+.validation-icon {
+    margin-left: 8px;
+    font-size: 14px;
+    min-width: 20px;
+    transition: all 0.3s ease;
+}
+
+.validation-item.valid .validation-icon {
+    content: "✅";
+}
+
+.validation-item.invalid .validation-icon {
+    content: "⚠️";
+}
+
+.validation-text {
+    font-weight: 500;
+}
+
+/* Update password input to accommodate toggle button */
+.password-input-container input {
+    padding-right: 45px;
+}
+
 /* Main Chat Container */
 .chat-container {
     position: fixed;
