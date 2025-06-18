@@ -601,6 +601,11 @@
             aboutView.classList.remove('active');
             inviteFriendView.classList.remove('active');
             
+            // Refresh the conversations list to pull latest changes
+            if (typeof loadFriends === 'function') {
+                loadFriends();
+            }
+            
             selectedChat = null;
             document.querySelectorAll('.conversation-item').forEach(el => {
                 el.classList.remove('active');
