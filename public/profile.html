@@ -221,21 +221,54 @@
         }
         
         // Add as friend function
-        function addAsFriend() {
+        async function addAsFriend() {
             if (!currentProfile) return;
             
             // Check if user is logged in
-            const currentUser = localStorage.getItem('user');
-            if (!currentUser) {
+            const currentUserStr = localStorage.getItem('user');
+            if (!currentUserStr) {
                 alert('برای افزودن دوست ابتدا وارد شوید');
                 window.location.href = '/';
                 return;
             }
             
-            // For now, redirect to main app with friend's username
-            // In Phase 2, this will directly add the friend
-            alert(`برای افزودن ${currentProfile.display_name} به دوستان، در برنامه جستجو کنید: ${currentProfile.username}`);
-            window.location.href = '/';
+            try {
+                const currentUser = JSON.parse(currentUserStr);
+                
+                // Check if trying to add yourself
+                if (currentUser.username === currentProfile.username) {
+                    alert('نمی‌توانید خودتان را به عنوان دوست اضافه کنید');
+                    return;
+                }
+                
+                // Add friend via API
+                const response = await fetch('/api/add-friend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: currentUser.userId,
+                        friendUsername: currentProfile.username
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`${currentProfile.display_name} با موفقیت به دوستان شما اضافه شد!`);
+                    
+                    // Redirect to main app and open chat with this friend
+                    localStorage.setItem('openChatWith', currentProfile.username);
+                    window.location.href = '/';
+                } else {
+                    const error = await response.json();
+                    alert(`خطا: ${error.error || 'نتوانستیم دوست را اضافه کنیم'}`);
+                }
+                
+            } catch (error) {
+                console.error('Error adding friend:', error);
+                alert('خطایی رخ داد. لطفاً دوباره تلاش کنید');
+            }
         }
         
         // Load profile on page load

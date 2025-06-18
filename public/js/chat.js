@@ -30,6 +30,9 @@ function initChat() {
     
     // Load friends list
     loadFriends();
+    
+    // Check if we need to open a chat with someone (from profile page)
+    checkForAutoOpenChat();
 }
 
 // Socket.IO event listeners
@@ -687,5 +690,36 @@ function markConversationRead(username) {
         if (indicator) {
             indicator.classList.remove('active');
         }
+    }
+}
+
+// Check if we need to auto-open a chat (from profile page friend add)
+function checkForAutoOpenChat() {
+    const chatToOpen = localStorage.getItem('openChatWith');
+    if (chatToOpen) {
+        // Remove the item so it doesn't keep opening
+        localStorage.removeItem('openChatWith');
+        
+        // Wait a bit for friends to load, then try to open the chat
+        setTimeout(() => {
+            const friend = friends.find(f => f.username === chatToOpen);
+            if (friend) {
+                const displayName = friend.displayName || friend.display_name || friend.username;
+                selectChat(chatToOpen, displayName);
+                showNotification(`چت با ${displayName} باز شد`);
+            } else {
+                // Friend not found yet, maybe they were just added - reload friends
+                loadFriends().then(() => {
+                    setTimeout(() => {
+                        const newFriend = friends.find(f => f.username === chatToOpen);
+                        if (newFriend) {
+                            const displayName = newFriend.displayName || newFriend.display_name || newFriend.username;
+                            selectChat(chatToOpen, displayName);
+                            showNotification(`چت با ${displayName} باز شد`);
+                        }
+                    }, 500);
+                });
+            }
+        }, 1000);
     }
 }

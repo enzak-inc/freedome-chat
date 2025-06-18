@@ -207,6 +207,49 @@ app.get('/api/conversations/:userId', async (req, res) => {
   }
 });
 
+// Add friend endpoint
+app.post('/api/add-friend', async (req, res) => {
+  try {
+    const { userId, friendUsername } = req.body;
+    
+    if (!userId || !friendUsername) {
+      return res.status(400).json({ error: 'User ID and friend username are required' });
+    }
+    
+    // Find the friend by username
+    const friend = await User.findByUsername(friendUsername);
+    if (!friend) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Don't allow adding yourself as friend
+    if (userId === friend.user_id) {
+      return res.status(400).json({ error: 'Cannot add yourself as friend' });
+    }
+    
+    // Add friend relationship
+    const success = await User.addFriend(userId, friend.user_id);
+    
+    if (success) {
+      res.json({ 
+        success: true, 
+        message: 'Friend added successfully',
+        friend: {
+          username: friend.username,
+          displayName: friend.display_name,
+          isOnline: friend.is_online
+        }
+      });
+    } else {
+      res.status(500).json({ error: 'Failed to add friend' });
+    }
+    
+  } catch (error) {
+    console.error('Add friend error:', error);
+    res.status(500).json({ error: 'Failed to add friend' });
+  }
+});
+
 // Update user profile
 app.post('/api/user/update-profile', async (req, res) => {
   try {
