@@ -236,6 +236,96 @@ body.light-theme {
     font-weight: 500;
 }
 
+/* Public About Us Styles */
+.about-content-public {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.about-content-public p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.back-to-login-btn,
+.back-to-register-btn {
+    width: 100%;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s;
+}
+
+.back-to-login-btn:hover,
+.back-to-register-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Registration Guide Styles */
+.guide-content {
+    text-align: right;
+    direction: rtl;
+}
+
+.guide-section {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    margin: 15px 0;
+}
+
+.guide-section h3 {
+    margin: 0 0 15px 0;
+    color: #4a9eff;
+    font-size: 18px;
+}
+
+.guide-section p {
+    margin: 10px 0;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+}
+
+.guide-section ul {
+    margin: 10px 0;
+    padding-right: 20px;
+    list-style: none;
+}
+
+.guide-section li {
+    margin: 8px 0;
+    color: rgba(255, 255, 255, 0.8);
+    position: relative;
+    padding-right: 20px;
+}
+
+.guide-section li:before {
+    content: "•";
+    color: #4a9eff;
+    position: absolute;
+    right: 0;
+    font-size: 18px;
+}
+
+.security-tip {
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+    color: #2ecc71;
+    font-size: 14px;
+}
+
 /* Main Chat Container */
 .chat-container {
     position: fixed;

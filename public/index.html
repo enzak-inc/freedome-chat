@@ -59,6 +59,7 @@
                     <button type="submit">ورود</button>
                 </form>
                 <p>حساب کاربری ندارید؟ <a href="#" onclick="showRegister()">ثبت‌نام</a></p>
+                <p><a href="#" onclick="showPublicAbout()">درباره ما</a></p>
                 <div id="loginError" class="error"></div>
             </div>
             
@@ -95,9 +96,69 @@
                     </div>
                     <button type="submit">ثبت‌نام</button>
                 </form>
+                <p><a href="#" onclick="showRegisterGuide()">راهنمای ثبت‌نام</a></p>
                 <p>قبلاً حساب کاربری دارید؟ <a href="#" onclick="showLogin()">ورود</a></p>
                 <div id="registerError" class="error"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Public About Us (visible without login) -->
+    <div id="publicAboutContainer" class="auth-container hidden">
+        <div class="auth-box">
+            <h1>درباره ما</h1>
+            <div class="about-content-public">
+                <p style="text-align: right; direction: rtl; line-height: 1.8;">
+                    سلام به همه دوستان ایرانی سراسر جهان،<br><br>
+                    ما مجموعه‌ای از برنامه‌نویسان و طراحان هستیم که معتقدیم ارتباط آزاد حق هر انسانی است. این پیام‌رسان با هدف ایجاد بستری امن برای گفتگوی آزاد ایرانیان طراحی شده است.<br><br>
+                    از محدودیت‌ها نترسید و صدای خود را به گوش جهان برسانید.<br><br>
+                    زنده باد ایران آزاد 🌟
+                </p>
+            </div>
+            <button class="back-to-login-btn" onclick="showLogin()">بازگشت به ورود</button>
+        </div>
+    </div>
+
+    <!-- Registration Guide -->
+    <div id="registerGuideContainer" class="auth-container hidden">
+        <div class="auth-box">
+            <h1>راهنمای ثبت‌نام</h1>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>📱 نام کاربری (@username)</h3>
+                    <p>نام کاربری شما باید:</p>
+                    <ul>
+                        <li>با @ شروع شود (مثل @ali123)</li>
+                        <li>حداقل 3 کاراکتر بعد از @ داشته باشد</li>
+                        <li>فقط از حروف انگلیسی، اعداد و _ استفاده کند</li>
+                        <li>منحصر به فرد باشد (قبلاً استفاده نشده باشد)</li>
+                    </ul>
+                </div>
+                
+                <div class="guide-section">
+                    <h3>👤 نام نمایشی</h3>
+                    <p>نام نمایشی:</p>
+                    <ul>
+                        <li>می‌تواند فارسی یا انگلیسی باشد</li>
+                        <li>این نام برای دوستان شما نمایش داده می‌شود</li>
+                        <li>قابل تغییر در تنظیمات است</li>
+                    </ul>
+                </div>
+                
+                <div class="guide-section">
+                    <h3>🔐 رمز عبور امن</h3>
+                    <p>رمز عبور شما باید شامل موارد زیر باشد:</p>
+                    <ul>
+                        <li>✅ حداقل 8 کاراکتر</li>
+                        <li>✅ حداقل یک حرف بزرگ انگلیسی (A-Z)</li>
+                        <li>✅ حداقل یک حرف کوچک انگلیسی (a-z)</li>
+                        <li>✅ حداقل یک عدد (0-9)</li>
+                        <li>✅ حداقل یک کاراکتر ویژه (!@#$%^&*)</li>
+                    </ul>
+                    <p class="security-tip">💡 نکته امنیتی: رمز عبور شما به صورت کاملاً رمزنگاری شده ذخیره می‌شود</p>
+                </div>
+            </div>
+            <button class="back-to-register-btn" onclick="showRegister()">بازگشت به ثبت‌نام</button>
         </div>
     </div>
 
@@ -500,6 +561,8 @@
         function showLogin() {
             document.getElementById('loginForm').classList.remove('hidden');
             document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('publicAboutContainer').classList.add('hidden');
+            document.getElementById('registerGuideContainer').classList.add('hidden');
             clearError('loginError');
             clearError('registerError');
             // Reset login username to @
@@ -510,11 +573,27 @@
         function showRegister() {
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('registerForm').classList.remove('hidden');
+            document.getElementById('publicAboutContainer').classList.add('hidden');
+            document.getElementById('registerGuideContainer').classList.add('hidden');
             clearError('loginError');
             clearError('registerError');
             // Reset register username to @
             const regUsernameEl = document.getElementById('regUsername');
             if (regUsernameEl) regUsernameEl.value = '@';
+        }
+
+        function showPublicAbout() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('publicAboutContainer').classList.remove('hidden');
+            document.getElementById('registerGuideContainer').classList.add('hidden');
+        }
+
+        function showRegisterGuide() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('publicAboutContainer').classList.add('hidden');
+            document.getElementById('registerGuideContainer').classList.remove('hidden');
         }
 
         function showAuthInterface() {
