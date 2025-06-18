@@ -159,7 +159,13 @@
             <div class="app-header">
                 <button class="menu-btn" onclick="toggleMenu()">☰</button>
                 <h1 class="app-title">ایران آزاد</h1>
-                <button class="new-chat-btn" onclick="addFriend()">+ جدید</button>
+                <div class="new-chat-menu">
+                    <button class="new-chat-btn" onclick="toggleNewChatMenu()">+ جدید</button>
+                    <div id="newChatDropdown" class="new-chat-dropdown hidden">
+                        <div class="dropdown-item" onclick="addFriend()">گفتگوی شخصی</div>
+                        <div class="dropdown-item" onclick="showCreateGroup()">گروه جدید</div>
+                    </div>
+                </div>
             </div>
             
             <!-- Search Bar -->
@@ -396,6 +402,61 @@
             <div id="newChatLoading" class="loading-state hidden">
                 <div class="loading-spinner"></div>
                 <p>در حال جستجو...</p>
+            </div>
+        </div>
+
+        <!-- Create Group View -->
+        <div id="createGroupView" class="create-group-view">
+            <!-- Create Group Header -->
+            <div class="create-group-header">
+                <button class="back-btn" onclick="backToConversations()">‹</button>
+                <h2 class="create-group-title">گروه جدید</h2>
+            </div>
+            
+            <!-- Create Group Content -->
+            <div class="create-group-content">
+                <!-- Group Name Input -->
+                <div class="group-name-section">
+                    <label for="groupNameInput" class="field-label">نام گروه</label>
+                    <input type="text" id="groupNameInput" class="group-name-input" placeholder="نام گروه را وارد کنید..." maxlength="50" oninput="updateGroupNameCounter()">
+                    <div class="char-counter">
+                        <span id="groupNameCounter">0</span>/50
+                    </div>
+                </div>
+                
+                <!-- Member Selection -->
+                <div class="members-section">
+                    <h3 class="section-title">انتخاب اعضا</h3>
+                    <div class="members-search">
+                        <input type="text" id="memberSearchInput" placeholder="جستجوی دوستان..." onkeyup="searchMembers(event)">
+                    </div>
+                    
+                    <!-- Selected Members -->
+                    <div id="selectedMembers" class="selected-members">
+                        <div class="selected-members-header">
+                            <h4>اعضای انتخاب شده (<span id="selectedCount">0</span>)</h4>
+                        </div>
+                        <div id="selectedMembersList" class="selected-members-list">
+                            <!-- Selected members will be added here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Available Friends -->
+                    <div class="available-members">
+                        <h4>دوستان شما</h4>
+                        <div id="availableMembersList" class="available-members-list">
+                            <!-- Available friends will be listed here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Create Button -->
+                <div class="create-group-actions">
+                    <button id="createGroupBtn" class="create-btn" onclick="createGroup()" disabled>
+                        ایجاد گروه
+                    </button>
+                    <button class="cancel-btn" onclick="backToConversations()">لغو</button>
+                </div>
             </div>
         </div>
     </div>
@@ -655,6 +716,7 @@
             const editProfileView = document.getElementById('editProfileView');
             const aboutView = document.getElementById('aboutView');
             const inviteFriendView = document.getElementById('inviteFriendView');
+            const createGroupView = document.getElementById('createGroupView');
             
             conversationsView.classList.add('active');
             chatView.classList.remove('active');
@@ -662,6 +724,7 @@
             editProfileView.classList.remove('active');
             aboutView.classList.remove('active');
             inviteFriendView.classList.remove('active');
+            createGroupView.classList.remove('active');
             
             // Refresh the conversations list to pull latest changes
             if (typeof loadFriends === 'function') {
@@ -672,6 +735,199 @@
             document.querySelectorAll('.conversation-item').forEach(el => {
                 el.classList.remove('active');
             });
+        }
+
+        // Group-related functions
+        let selectedMembers = [];
+        
+        function toggleNewChatMenu() {
+            const dropdown = document.getElementById('newChatDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('newChatDropdown');
+            const newChatBtn = event.target.closest('.new-chat-btn');
+            
+            if (!newChatBtn && dropdown && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        function showCreateGroup() {
+            const conversationsView = document.getElementById('conversationsView');
+            const createGroupView = document.getElementById('createGroupView');
+            
+            conversationsView.classList.remove('active');
+            createGroupView.classList.add('active');
+            
+            // Reset form
+            resetGroupForm();
+            
+            // Load available friends
+            loadAvailableMembers();
+            
+            // Hide dropdown
+            document.getElementById('newChatDropdown').classList.add('hidden');
+        }
+
+        function resetGroupForm() {
+            document.getElementById('groupNameInput').value = '';
+            document.getElementById('memberSearchInput').value = '';
+            document.getElementById('groupNameCounter').textContent = '0';
+            selectedMembers = [];
+            updateSelectedMembersDisplay();
+            updateCreateButtonState();
+        }
+
+        function updateGroupNameCounter() {
+            const input = document.getElementById('groupNameInput');
+            const counter = document.getElementById('groupNameCounter');
+            counter.textContent = input.value.length;
+            updateCreateButtonState();
+        }
+
+        function loadAvailableMembers() {
+            const availableList = document.getElementById('availableMembersList');
+            availableList.innerHTML = '';
+            
+            if (!friends || friends.length === 0) {
+                availableList.innerHTML = '<p class="no-friends">شما هنوز دوستی ندارید. ابتدا دوست اضافه کنید.</p>';
+                return;
+            }
+            
+            friends.forEach(friend => {
+                const memberItem = document.createElement('div');
+                memberItem.className = 'member-item';
+                memberItem.innerHTML = `
+                    <div class="member-info">
+                        <div class="member-avatar">${(friend.displayName || friend.display_name)[0].toUpperCase()}</div>
+                        <div class="member-details">
+                            <div class="member-name">${friend.displayName || friend.display_name}</div>
+                            <div class="member-username">${friend.username}</div>
+                        </div>
+                    </div>
+                    <button class="select-member-btn" onclick="toggleMemberSelection('${friend.username}')">
+                        انتخاب
+                    </button>
+                `;
+                availableList.appendChild(memberItem);
+            });
+        }
+
+        function toggleMemberSelection(username) {
+            const friend = friends.find(f => f.username === username);
+            if (!friend) return;
+            
+            const index = selectedMembers.findIndex(m => m.username === username);
+            if (index === -1) {
+                // Add to selected
+                selectedMembers.push(friend);
+            } else {
+                // Remove from selected
+                selectedMembers.splice(index, 1);
+            }
+            
+            updateSelectedMembersDisplay();
+            updateMemberButtons();
+            updateCreateButtonState();
+        }
+
+        function updateSelectedMembersDisplay() {
+            const selectedList = document.getElementById('selectedMembersList');
+            const selectedCount = document.getElementById('selectedCount');
+            
+            selectedCount.textContent = selectedMembers.length;
+            selectedList.innerHTML = '';
+            
+            if (selectedMembers.length === 0) {
+                selectedList.innerHTML = '<p class="no-selected">هیچ عضوی انتخاب نشده</p>';
+                return;
+            }
+            
+            selectedMembers.forEach(member => {
+                const memberItem = document.createElement('div');
+                memberItem.className = 'selected-member-item';
+                memberItem.innerHTML = `
+                    <div class="member-info">
+                        <div class="member-avatar">${(member.displayName || member.display_name)[0].toUpperCase()}</div>
+                        <div class="member-details">
+                            <div class="member-name">${member.displayName || member.display_name}</div>
+                            <div class="member-username">${member.username}</div>
+                        </div>
+                    </div>
+                    <button class="remove-member-btn" onclick="toggleMemberSelection('${member.username}')">
+                        حذف
+                    </button>
+                `;
+                selectedList.appendChild(memberItem);
+            });
+        }
+
+        function updateMemberButtons() {
+            document.querySelectorAll('.member-item').forEach(item => {
+                const button = item.querySelector('.select-member-btn');
+                const username = button.getAttribute('onclick').match(/'([^']+)'/)[1];
+                const isSelected = selectedMembers.some(m => m.username === username);
+                
+                if (isSelected) {
+                    button.textContent = 'انتخاب شده';
+                    button.classList.add('selected');
+                } else {
+                    button.textContent = 'انتخاب';
+                    button.classList.remove('selected');
+                }
+            });
+        }
+
+        function updateCreateButtonState() {
+            const createBtn = document.getElementById('createGroupBtn');
+            const groupName = document.getElementById('groupNameInput').value.trim();
+            
+            const canCreate = groupName.length > 0 && selectedMembers.length > 0;
+            createBtn.disabled = !canCreate;
+        }
+
+        function searchMembers(event) {
+            const query = event.target.value.toLowerCase();
+            const memberItems = document.querySelectorAll('.member-item');
+            
+            memberItems.forEach(item => {
+                const name = item.querySelector('.member-name').textContent.toLowerCase();
+                const username = item.querySelector('.member-username').textContent.toLowerCase();
+                
+                if (name.includes(query) || username.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function createGroup() {
+            const groupName = document.getElementById('groupNameInput').value.trim();
+            const createBtn = document.getElementById('createGroupBtn');
+            
+            if (!groupName || selectedMembers.length === 0) {
+                alert('لطفاً نام گروه را وارد کرده و حداقل یک عضو انتخاب کنید');
+                return;
+            }
+            
+            // Disable button during creation
+            createBtn.disabled = true;
+            createBtn.textContent = 'در حال ایجاد...';
+            
+            // Extract usernames
+            const memberUsernames = selectedMembers.map(m => m.username);
+            
+            // Send create group request
+            if (socket) {
+                socket.emit('create_group', {
+                    groupName: groupName,
+                    memberUsernames: memberUsernames
+                });
+            }
         }
 
         function updateHeaderAvatar() {

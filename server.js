@@ -364,6 +364,16 @@ io.on('connection', (socket) => {
             });
           }
         }
+
+        // Get user's groups and join group rooms
+        const groups = await Group.getUserGroups(user.user_id);
+        console.log(`User ${user.username} is member of ${groups.length} groups`);
+        
+        for (const group of groups) {
+          // Join group room for instant message delivery
+          socket.join(group.group_id);
+          console.log(`Joined group room ${group.group_id} for group ${group.group_name}`);
+        }
         
         socket.emit('authenticated', { success: true });
       } else {

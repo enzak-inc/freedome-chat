@@ -113,44 +113,107 @@ function setupSocketListeners() {
         console.log('Socket error received:', data);
         showNotification(`خطا: ${data.message}`);
     });
+
+    // Group-related socket events
+    socket.on('group_created', (data) => {
+        console.log('Group created event received:', data);
+        showNotification(`گروه "${data.groupName}" با موفقیت ایجاد شد!`);
+        
+        // Reset create group form
+        const createBtn = document.getElementById('createGroupBtn');
+        if (createBtn) {
+            createBtn.disabled = false;
+            createBtn.textContent = 'ایجاد گروه';
+        }
+        
+        // Go back to conversations and refresh
+        if (typeof backToConversations === 'function') {
+            backToConversations();
+        }
+        
+        // Refresh both friends and groups list
+        loadFriends();
+    });
+
+    socket.on('group_message', (data) => {
+        console.log('Group message received:', data);
+        
+        // Store message for group
+        if (!messages[data.groupId]) messages[data.groupId] = [];
+        messages[data.groupId].push(data);
+        
+        // Only display if this is a received message (not sent by us)
+        if (data.sender !== currentUser.username) {
+            // Update UI if this group chat is selected
+            if (selectedChat === data.groupId) {
+                console.log('Received group message for current chat, displaying...');
+                displayGroupMessage(data);
+            }
+            
+            // Show notification for new messages from others
+            showNotification(`پیام جدید در گروه از ${data.senderName}`, () => {
+                // Navigate to the group chat
+                selectGroupChat(data.groupId, data.groupName || `گروه ${data.groupId.slice(0, 8)}`);
+            });
+            
+            // Mark conversation as having unread messages
+            markConversationUnread(data.groupId);
+        }
+        
+        // Update conversation preview for group messages
+        updateGroupConversationPreview(data);
+    });
 }
 
-// Load friends list
+// Load friends and groups list
+let groups = [];
+
 async function loadFriends() {
     try {
-        console.log('Loading friends from server for user:', currentUser.userId);
+        console.log('Loading friends and groups from server for user:', currentUser.userId);
         
         // Fetch friends from server API
-        const response = await fetch(`/api/friends/${currentUser.userId}`);
-        if (response.ok) {
-            friends = await response.json();
+        const friendsResponse = await fetch(`/api/friends/${currentUser.userId}`);
+        if (friendsResponse.ok) {
+            friends = await friendsResponse.json();
             console.log('Loaded friends from server:', friends);
         } else {
             console.error('Failed to load friends from server');
             friends = [];
         }
+
+        // Fetch groups from server API
+        const groupsResponse = await fetch(`/api/groups/user/${currentUser.userId}`);
+        if (groupsResponse.ok) {
+            groups = await groupsResponse.json();
+            console.log('Loaded groups from server:', groups);
+        } else {
+            console.error('Failed to load groups from server');
+            groups = [];
+        }
         
         displayFriendsList();
     } catch (error) {
-        console.error('Error loading friends:', error);
+        console.error('Error loading friends and groups:', error);
         friends = [];
+        groups = [];
         displayFriendsList();
     }
 }
 
-// Display friends list
+// Display friends and groups list
 async function displayFriendsList() {
     const friendsList = document.getElementById('friendsList');
     if (!friendsList) return;
     
     friendsList.innerHTML = '';
     
-    if (friends.length === 0) {
-        friendsList.innerHTML = '<p class="no-friends">هنوز مکالمه‌ای ندارید. برای شروع چت، دوستان اضافه کنید!</p>';
+    if (friends.length === 0 && groups.length === 0) {
+        friendsList.innerHTML = '<p class="no-friends">هنوز مکالمه‌ای ندارید. برای شروع چت، دوستان اضافه کنید یا گروه جدید بسازید!</p>';
         return;
     }
     
-    // Load recent conversations to get message previews
+    // Load recent conversations to get message previews for friends
     try {
         const response = await fetch(`/api/conversations/${currentUser.userId}`);
         if (response.ok) {
@@ -163,7 +226,12 @@ async function displayFriendsList() {
                 friendsMap.set(friend.username, friend);
             });
             
-            // Display conversations in order (most recent first)
+            // Display group conversations first
+            groups.forEach(group => {
+                displayGroup(group);
+            });
+            
+            // Display friend conversations in order (most recent first)
             conversations.forEach(conv => {
                 const friend = friendsMap.get(conv.username);
                 if (friend) {
@@ -179,12 +247,14 @@ async function displayFriendsList() {
                 }
             });
         } else {
-            // Fallback to displaying friends without conversation data
+            // Fallback to displaying groups and friends without conversation data
+            groups.forEach(group => displayGroup(group));
             friends.forEach(friend => displayFriend(friend));
         }
     } catch (error) {
         console.error('Error loading conversations:', error);
-        // Fallback to displaying friends without conversation data
+        // Fallback to displaying groups and friends without conversation data
+        groups.forEach(group => displayGroup(group));
         friends.forEach(friend => displayFriend(friend));
     }
 }
@@ -255,34 +325,235 @@ function displayFriend(friend, conversationData = null) {
     friendsList.appendChild(friendEl);
 }
 
-// Send message
+// Display single group (conversation item)
+function displayGroup(group) {
+    console.log('displayGroup called with:', group);
+    const friendsList = document.getElementById('friendsList');
+    if (!friendsList) return;
+    
+    const groupName = group.group_name || `گروه ${group.group_id.slice(0, 8)}`;
+    const memberCount = group.member_count || 0;
+    
+    // Get last message for group (if any)
+    let previewText = 'هنوز پیامی نیست';
+    let messageTime = '';
+    
+    const lastMessage = getLastMessage(group.group_id);
+    if (lastMessage) {
+        previewText = lastMessage.message;
+        messageTime = formatMessageTime(lastMessage.timestamp);
+    }
+    
+    const groupEl = document.createElement('div');
+    groupEl.className = 'conversation-item group-conversation';
+    groupEl.dataset.groupId = group.group_id;
+    groupEl.innerHTML = `
+        <div class="conversation-avatar group-avatar">
+            👥
+            <span class="unread-indicator"></span>
+        </div>
+        <div class="conversation-content">
+            <div class="conversation-header-info">
+                <div class="conversation-name">${escapeHtml(groupName)}</div>
+                <div class="conversation-time">${messageTime}</div>
+            </div>
+            <div class="conversation-details">${memberCount} عضو</div>
+            <div class="conversation-preview">${escapeHtml(previewText)}</div>
+        </div>
+        <div class="conversation-status"></div>
+    `;
+    
+    groupEl.onclick = () => {
+        selectGroupChat(group.group_id, groupName);
+        // Clear unread indicator when group chat is selected
+        markConversationRead(group.group_id);
+    };
+    
+    // Check if this group conversation has unread messages and apply indicator
+    if (unreadConversations.has(group.group_id)) {
+        const indicator = groupEl.querySelector('.unread-indicator');
+        if (indicator) {
+            indicator.classList.add('active');
+        }
+    }
+    
+    friendsList.appendChild(groupEl);
+}
+
+// Select group chat
+function selectGroupChat(groupId, groupName) {
+    selectedChat = groupId;
+    
+    // Switch views
+    const conversationsView = document.getElementById('conversationsView');
+    const chatView = document.getElementById('chatView');
+    
+    conversationsView.classList.remove('active');
+    chatView.classList.add('active');
+    
+    // Update chat header for group
+    const chatName = document.getElementById('chatName');
+    const chatUsername = document.getElementById('chatUsername');
+    
+    if (chatName) chatName.textContent = groupName;
+    if (chatUsername) chatUsername.textContent = 'گروه';
+    
+    // Enable message input
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    
+    if (messageInput && sendBtn) {
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        messageInput.placeholder = 'پیام خود را بنویسید...';
+    }
+    
+    // Clear unread indicator when group chat is selected
+    markConversationRead(groupId);
+    
+    // Load group messages
+    loadGroupMessages(groupId);
+}
+
+// Load group messages
+async function loadGroupMessages(groupId) {
+    try {
+        const response = await fetch(`/api/messages/group/${groupId}?limit=50&offset=0`);
+        if (response.ok) {
+            const groupMessages = await response.json();
+            console.log('Loaded group messages:', groupMessages);
+            
+            // Store messages
+            messages[groupId] = groupMessages;
+            
+            // Clear and display messages
+            const messagesEl = document.getElementById('messages');
+            if (messagesEl) {
+                messagesEl.innerHTML = '';
+                lastMessageDate = null;
+                groupMessages.forEach(msg => displayGroupMessage(msg));
+            }
+        } else {
+            console.error('Failed to load group messages');
+        }
+    } catch (error) {
+        console.error('Error loading group messages:', error);
+    }
+}
+
+// Display group message
+function displayGroupMessage(data) {
+    const messagesEl = document.getElementById('messages');
+    if (!messagesEl) return;
+    
+    const messageDate = new Date(data.timestamp);
+    const messageDateStr = messageDate.toDateString();
+    
+    // Add date separator if this is a different day than the last message
+    if (lastMessageDate !== messageDateStr) {
+        addDateSeparator(messagesEl, messageDate);
+        lastMessageDate = messageDateStr;
+    }
+    
+    const isSent = data.sender === currentUser.username;
+    const messageEl = document.createElement('div');
+    
+    // Detect text direction
+    const textDirection = detectTextDirection(data.message);
+    messageEl.className = `message ${isSent ? 'sent' : 'received'} ${textDirection} group-message`;
+    messageEl.dir = textDirection;
+    
+    const formattedTime = formatMessageTimestamp(data.timestamp);
+    const senderName = data.senderName || data.sender_name || data.sender;
+    
+    messageEl.innerHTML = `
+        <div class="message-content">
+            ${!isSent ? `<div class="message-sender">${escapeHtml(senderName)}</div>` : ''}
+            ${escapeHtml(data.message)}
+        </div>
+        <div class="message-info">
+            <div class="message-time">${formattedTime}</div>
+        </div>
+    `;
+    
+    messagesEl.appendChild(messageEl);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+// Update group conversation preview
+function updateGroupConversationPreview(messageData) {
+    const groupEl = document.querySelector(`[data-group-id="${messageData.groupId}"]`);
+    if (!groupEl) return;
+    
+    const previewEl = groupEl.querySelector('.conversation-preview');
+    const timeEl = groupEl.querySelector('.conversation-time');
+    
+    if (previewEl) {
+        const senderName = messageData.senderName || messageData.sender;
+        const preview = `${senderName}: ${messageData.message}`;
+        previewEl.textContent = preview;
+    }
+    
+    if (timeEl) {
+        timeEl.textContent = formatMessageTime(messageData.timestamp);
+    }
+    
+    // Move group to top of list
+    const friendsList = document.getElementById('friendsList');
+    if (friendsList && groupEl) {
+        friendsList.insertBefore(groupEl, friendsList.firstChild);
+    }
+}
+
+// Send message (updated to handle groups)
 function sendMessage() {
     const input = document.getElementById('messageInput');
     if (!input || !input.value.trim() || !selectedChat || !socket) return;
     
     const message = input.value.trim();
     
+    // Check if current chat is a group (groups have UUID format)
+    const isGroupChat = selectedChat.includes('-') && selectedChat.length > 20;
+    
     // Create message data
     const messageData = {
         sender: currentUser.username,
         senderName: currentUser.displayName,
         message: message,
-        timestamp: new Date().toISOString(),
-        recipientUsername: selectedChat
+        timestamp: new Date().toISOString()
     };
     
-    // Store message locally
-    if (!messages[selectedChat]) messages[selectedChat] = [];
-    messages[selectedChat].push(messageData);
-    
-    // Display immediately
-    displayMessage(messageData);
-    
-    // Send via Socket.IO
-    socket.emit('private_message', {
-        recipientUsername: selectedChat,
-        message: message
-    });
+    if (isGroupChat) {
+        messageData.groupId = selectedChat;
+        
+        // Store message locally
+        if (!messages[selectedChat]) messages[selectedChat] = [];
+        messages[selectedChat].push(messageData);
+        
+        // Display immediately
+        displayGroupMessage(messageData);
+        
+        // Send via Socket.IO
+        socket.emit('group_message', {
+            groupId: selectedChat,
+            message: message
+        });
+    } else {
+        messageData.recipientUsername = selectedChat;
+        
+        // Store message locally
+        if (!messages[selectedChat]) messages[selectedChat] = [];
+        messages[selectedChat].push(messageData);
+        
+        // Display immediately
+        displayMessage(messageData);
+        
+        // Send via Socket.IO
+        socket.emit('private_message', {
+            recipientUsername: selectedChat,
+            message: message
+        });
+    }
     
     // Clear input
     input.value = '';
