@@ -438,8 +438,31 @@ function showNewChatPlaceholder() {
     resultsContainer.innerHTML = `
         <div class="search-placeholder">
             <div class="placeholder-icon">👋</div>
-            <h3>Find your friends</h3>
-            <p>Search for users by their username to start a conversation</p>
+            <h3>دوستان خود را پیدا کنید</h3>
+            <div class="search-guide">
+                <h4>📖 راهنمای جستجو:</h4>
+                <ul class="guide-list">
+                    <li>
+                        <span class="guide-icon">🔍</span>
+                        <span class="guide-text">حداقل <strong>3 حرف</strong> از نام کاربری یا نام نمایشی را تایپ کنید</span>
+                    </li>
+                    <li>
+                        <span class="guide-icon">👤</span>
+                        <span class="guide-text">با <strong>نام کاربری</strong>: مثل <code>@ali</code> یا <code>sara</code> (@ اختیاری است)</span>
+                    </li>
+                    <li>
+                        <span class="guide-icon">📝</span>
+                        <span class="guide-text">با <strong>نام نمایشی</strong>: مثل <code>علی رضا</code> یا <code>سارا محمدی</code></span>
+                    </li>
+                    <li>
+                        <span class="guide-icon">⚡</span>
+                        <span class="guide-text">جستجو <strong>بلافاصله</strong> پس از تایپ 3 حرف شروع می‌شود</span>
+                    </li>
+                </ul>
+                <div class="search-tip">
+                    💡 <strong>نکته:</strong> اگر دوست شما را پیدا نمی‌کنید، از او بخواهید نام کاربری دقیقش را به شما بدهد
+                </div>
+            </div>
         </div>
     `;
 }
