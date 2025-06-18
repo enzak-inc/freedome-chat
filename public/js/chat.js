@@ -230,6 +230,15 @@ function displayFriend(friend, conversationData = null) {
         // Clear unread indicator when chat is selected
         markConversationRead(username);
     };
+    
+    // Check if this conversation has unread messages and apply indicator
+    if (unreadConversations.has(username)) {
+        const indicator = friendEl.querySelector('.unread-indicator');
+        if (indicator) {
+            indicator.classList.add('active');
+        }
+    }
+    
     friendsList.appendChild(friendEl);
 }
 
@@ -671,7 +680,10 @@ function markConversationUnread(username) {
         return;
     }
     
+    // Always add to unread set (this persists even when not in conversations view)
     unreadConversations.add(username);
+    
+    // Try to update the indicator if the element exists (when in conversations view)
     const friendEl = document.querySelector(`[data-username="${username}"]`);
     if (friendEl) {
         const indicator = friendEl.querySelector('.unread-indicator');
@@ -679,6 +691,8 @@ function markConversationUnread(username) {
             indicator.classList.add('active');
         }
     }
+    // Note: If element doesn't exist (e.g., in chat view), the indicator will be 
+    // applied when returning to conversations view via displayFriend() function
 }
 
 // Mark conversation as read
