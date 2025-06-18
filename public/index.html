@@ -68,12 +68,7 @@
                 <form onsubmit="handleRegister(event)">
                     <input type="text" id="regUsername" placeholder="@نام‌کاربری" required pattern="@[a-zA-Z0-9_]{3,}" value="@">
                     <input type="text" id="regDisplayName" placeholder="نام نمایشی" required>
-                    <div class="password-input-container">
-                        <input type="text" id="regPassword" placeholder="رمز عبور (حداقل ۸ کاراکتر)" required minlength="8" oninput="validatePasswordLive()">
-                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('regPassword', this)" title="نمایش/مخفی کردن رمز عبور">
-                            👁️
-                        </button>
-                    </div>
+                    <input type="text" id="regPassword" placeholder="رمز عبور (حداقل ۸ کاراکتر)" required minlength="8" oninput="validatePasswordLive()">
                     
                     <!-- Live Password Validation -->
                     <div class="password-validation" id="passwordValidation">
@@ -1047,20 +1042,6 @@
             // Load messages
             loadMessages(username);
         };
-
-        // Password visibility toggle
-        function togglePasswordVisibility(inputId, button) {
-            const input = document.getElementById(inputId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                button.innerHTML = '🙈';
-                button.title = 'مخفی کردن رمز عبور';
-            } else {
-                input.type = 'password';
-                button.innerHTML = '👁️';
-                button.title = 'نمایش رمز عبور';
-            }
-        }
 
         // Live password validation
         function validatePasswordLive() {

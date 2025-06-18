@@ -192,32 +192,6 @@ body.light-theme {
     margin-top: 10px;
 }
 
-/* Password Input Container */
-.password-input-container {
-    position: relative;
-    width: 100%;
-}
-
-.password-toggle {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    color: rgba(255, 255, 255, 0.6);
-    transition: color 0.3s;
-    padding: 4px;
-    border-radius: 4px;
-}
-
-.password-toggle:hover {
-    color: rgba(255, 255, 255, 0.9);
-    background: rgba(255, 255, 255, 0.1);
-}
-
 /* Password Validation */
 .password-validation {
     margin: 12px 0;
@@ -260,11 +234,6 @@ body.light-theme {
 
 .validation-text {
     font-weight: 500;
-}
-
-/* Update password input to accommodate toggle button */
-.password-input-container input {
-    padding-right: 45px;
 }
 
 /* Main Chat Container */
