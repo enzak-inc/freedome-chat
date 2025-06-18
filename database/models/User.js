@@ -16,14 +16,8 @@ class User {
         // Generate shareable link
         const shareableLink = `http://${baseUrl}${username}`;
         
-        // Generate QR code
-        const qrCodeData = JSON.stringify({
-            username,
-            displayName,
-            shareableLink,
-            userId
-        });
-        const qrCode = await QRCode.toDataURL(qrCodeData);
+        // Generate QR code with the shareable link directly
+        const qrCode = await QRCode.toDataURL(shareableLink);
         
         // Insert user into database
         const sql = `

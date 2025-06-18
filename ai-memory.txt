@@ -333,23 +333,28 @@ mysql -u root -p -e "USE freedom_chat; SHOW TABLES;"
 ```
 freedome-chat/
 ├── package.json               # Dependencies and scripts
-├── server.js                  # Main server with all endpoints and Socket.IO
-├── setup-db.js               # Database setup script  
+├── server.js                  # Enhanced server with profile update and invitation APIs
+├── setup-db.js               # Database setup script with freedom_chat fallback
 ├── .env                      # Environment variables (not in git)
 ├── .env.example              # Template for environment variables
 ├── .gitignore                # Git ignore file
-├── ai-memory.txt             # Project documentation and roadmap
+├── ai-memory.txt             # Updated project documentation and roadmap
 ├── README-DATABASE.md        # Database setup guide
 ├── database/
-│   ├── init.sql              # Original MySQL schema
+│   ├── init.sql              # Updated MySQL schema (no hardcoded DB names)
 │   ├── init-mariadb.sql      # MariaDB-compatible schema
-│   ├── database.js           # MySQL connection pool and helpers
+│   ├── database.js           # MySQL connection pool with freedom_chat fallback
 │   └── models/
-│       ├── User.js           # User model with auth and friends
+│       ├── User.js           # Enhanced user model with QR codes, profile, and password methods
 │       ├── Message.js        # Message model with chat history
 │       └── Group.js          # Group model with members
 └── public/
-    └── index.html            # Basic HTML interface
+    ├── index.html            # Complete Farsi UI with Edit Profile, About Us, and Invite Friend
+    ├── css/
+    │   └── styles.css        # Enhanced styles with RTL/LTR message support and new views
+    └── js/
+        ├── auth.js           # Authentication handling
+        └── chat.js           # Chat functionality with text direction detection
 ```
 
 ## 🎯 Success Criteria
@@ -417,14 +422,52 @@ The project will be considered complete when:
 - **Environment Config:** Secure credential management with .env
 - **Deployment Scripts:** Easy database setup and migration
 
-### 🚧 Next Steps (Phase 4)
-- Frontend UI implementation (HTML/CSS/JavaScript)
-- Authentication forms and validation
-- Real-time chat interface
-- Friend list and user search UI
-- Group management interface
-- Message history display
-- Profile pages with QR codes
+### ✅ Phase 4: Frontend Development - COMPLETED
+1. ✅ **Database Name Configuration Fix**
+   - Fixed hardcoded database fallback values in database.js and setup-db.js
+   - Changed from 'iran_chat_db' to 'freedom_chat' to match .env configuration
+   - Updated SQL init file to remove hardcoded database references
+
+2. ✅ **Automatic Text Direction Detection**
+   - Implemented Unicode-based RTL/LTR detection for messages
+   - Added detectTextDirection() function using Persian/Arabic Unicode ranges
+   - English messages display LTR, Farsi messages display RTL
+   - Similar to iPhone Messages behavior
+
+3. ✅ **Message History Loading Fix**
+   - Fixed loadFriends() to properly fetch from server API
+   - Added proper error handling and logging
+   - Messages now persist correctly after logout/login
+
+4. ✅ **UI Language Conversion to Farsi**
+   - Translated all menu items and UI elements to Farsi
+   - Changed app title to "ایران آزاد - پیام‌رسان محلی امن"
+   - Reverted main layout to LTR while keeping Farsi text
+   - Updated form labels, buttons, and placeholders to Farsi
+
+5. ✅ **Edit Profile Functionality**
+   - Created dedicated Edit Profile page with Farsi interface
+   - Added display name editing capability
+   - Implemented password change functionality with validation
+   - Added save/cancel buttons in Farsi
+   - Enhanced backend API to handle both profile and password updates
+
+6. ✅ **About Us Page**
+   - Created dedicated About Us page with user's personal message in Farsi
+   - Added proper RTL formatting for the message content
+   - Included back button and app information
+
+7. ✅ **Invitation Mechanism - Phase 1**
+   - Added "دعوت از دوست" (Invite Friend) menu item
+   - Created invite page showing user's QR code and shareable link
+   - Implemented copy link functionality with visual feedback
+   - Added share via text option with formatted Persian invitation message
+   - QR code displays user profile data for easy friend adding
+
+### 🚧 Next Steps (Phase 5)
+- Phase 2: Enhance profile pages with Add Friend button when viewing other users
+- Phase 3: Create smart connect links that automatically add friends
+- Testing and optimization for local network deployment
 
 ### 💡 Key Technical Decisions Made
 1. **MySQL over SQLite:** Better performance, scalability, and concurrent connections
@@ -433,5 +476,9 @@ The project will be considered complete when:
 4. **Environment Variables:** Secure configuration management
 5. **Database Models:** Clean separation of concerns with model classes
 6. **Indexed Queries:** Fast search and message retrieval
+7. **Unicode Text Direction Detection:** Automatic RTL/LTR based on content
+8. **Farsi UI with LTR Layout:** Maintains usability while supporting Persian language
+9. **QR Code Integration:** Built-in user profile sharing via QR codes
+10. **Phase-based Invitation System:** Scalable friend invitation mechanism
 
 This chat application is designed to provide Iranian users with a reliable, secure, and easy-to-use communication platform that works independently of external internet services while maintaining modern chat app functionality and user experience.
