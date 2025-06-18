@@ -455,7 +455,9 @@ function displayGroupMessage(data) {
         lastMessageDate = messageDateStr;
     }
     
-    const isSent = data.sender === currentUser.username;
+    // Handle both real-time messages (sender) and database messages (sender_username)
+    const senderUsername = data.sender || data.sender_username;
+    const isSent = senderUsername === currentUser.username;
     const messageEl = document.createElement('div');
     
     // Detect text direction
@@ -464,7 +466,8 @@ function displayGroupMessage(data) {
     messageEl.dir = textDirection;
     
     const formattedTime = formatMessageTimestamp(data.timestamp);
-    const senderName = data.senderName || data.sender_name || data.sender;
+    // Handle both real-time messages (senderName) and database messages (sender_display_name)
+    const senderName = data.senderName || data.sender_display_name || senderUsername;
     
     messageEl.innerHTML = `
         <div class="message-content">
