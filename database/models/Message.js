@@ -101,25 +101,35 @@ class Message {
                         WHEN sender_id = ? THEN recipient_id 
                         ELSE sender_id 
                     END as other_user_id,
-                    MAX(timestamp) as last_message_time,
-                    message as last_message,
-                    sender_id as last_sender_id
+                    MAX(timestamp) as last_message_time
                 FROM messages
                 WHERE (sender_id = ? OR recipient_id = ?) AND group_id IS NULL
                 GROUP BY other_user_id
+            ),
+            last_messages AS (
+                SELECT 
+                    rm.other_user_id,
+                    rm.last_message_time,
+                    m.message as last_message,
+                    m.sender_id as last_sender_id
+                FROM recent_messages rm
+                JOIN messages m ON m.timestamp = rm.last_message_time
+                    AND ((m.sender_id = ? AND m.recipient_id = rm.other_user_id) 
+                         OR (m.recipient_id = ? AND m.sender_id = rm.other_user_id))
+                    AND m.group_id IS NULL
             )
             SELECT 
-                rm.*,
+                lm.*,
                 u.username,
                 u.display_name,
                 u.is_online
-            FROM recent_messages rm
-            JOIN users u ON rm.other_user_id = u.user_id
-            ORDER BY rm.last_message_time DESC
+            FROM last_messages lm
+            JOIN users u ON lm.other_user_id = u.user_id
+            ORDER BY lm.last_message_time DESC
             LIMIT ?
         `;
         
-        return await dbAsync.all(sql, [userId, userId, userId, limit]);
+        return await dbAsync.all(sql, [userId, userId, userId, userId, userId, limit]);
     }
     
     static async deleteMessage(messageId, userId) {
