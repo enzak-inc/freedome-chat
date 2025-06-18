@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پروفایل کاربر - ایران آزاد</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .profile-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+        
+        .profile-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            margin: 0 auto 20px;
+        }
+        
+        .profile-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        
+        .profile-username {
+            font-size: 16px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+        
+        .profile-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .status-online {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid #2ecc71;
+        }
+        
+        .status-offline {
+            background: rgba(149, 165, 166, 0.2);
+            color: #95a5a6;
+            border: 1px solid #95a5a6;
+        }
+        
+        .profile-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .action-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            margin-bottom: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #888;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-card">
+            <div id="loadingState" class="loading">
+                در حال بارگذاری...
+            </div>
+            
+            <div id="errorState" class="error-message" style="display: none;">
+                <p>کاربر یافت نشد یا خطایی رخ داده است.</p>
+            </div>
+            
+            <div id="profileContent" style="display: none;">
+                <div class="profile-avatar" id="profileAvatar"></div>
+                <div class="profile-name" id="profileName"></div>
+                <div class="profile-username" id="profileUsername"></div>
+                <div class="profile-status" id="profileStatus"></div>
+                
+                <div class="profile-actions">
+                    <button class="action-btn btn-primary" id="addFriendBtn" onclick="addAsFriend()">
+                        افزودن به دوستان
+                    </button>
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+                <a href="/" class="action-btn btn-secondary">
+                    بازگشت به چت
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProfile = null;
+        
+        // Get username from URL
+        function getUsernameFromURL() {
+            const path = window.location.pathname;
+            return path.substring(1); // Remove the leading '/'
+        }
+        
+        // Load user profile
+        async function loadProfile() {
+            const username = getUsernameFromURL();
+            
+            try {
+                const response = await fetch(`/api/user/${username}`);
+                if (response.ok) {
+                    const user = await response.json();
+                    displayProfile(user);
+                } else {
+                    showError();
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showError();
+            }
+        }
+        
+        // Display profile data
+        function displayProfile(user) {
+            currentProfile = user;
+            
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('profileContent').style.display = 'block';
+            
+            // Set profile data
+            document.getElementById('profileAvatar').textContent = user.display_name[0].toUpperCase();
+            document.getElementById('profileName').textContent = user.display_name;
+            document.getElementById('profileUsername').textContent = user.username;
+            
+            // Set online status
+            const statusEl = document.getElementById('profileStatus');
+            if (user.is_online) {
+                statusEl.textContent = 'آنلاین';
+                statusEl.className = 'profile-status status-online';
+            } else {
+                statusEl.textContent = 'آفلاین';
+                statusEl.className = 'profile-status status-offline';
+            }
+            
+            // Update page title
+            document.title = `${user.display_name} - ایران آزاد`;
+        }
+        
+        // Show error state
+        function showError() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+        }
+        
+        // Add as friend function
+        function addAsFriend() {
+            if (!currentProfile) return;
+            
+            // Check if user is logged in
+            const currentUser = localStorage.getItem('user');
+            if (!currentUser) {
+                alert('برای افزودن دوست ابتدا وارد شوید');
+                window.location.href = '/';
+                return;
+            }
+            
+            // For now, redirect to main app with friend's username
+            // In Phase 2, this will directly add the friend
+            alert(`برای افزودن ${currentProfile.display_name} به دوستان، در برنامه جستجو کنید: ${currentProfile.username}`);
+            window.location.href = '/';
+        }
+        
+        // Load profile on page load
+        document.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
+</body>
+</html>
