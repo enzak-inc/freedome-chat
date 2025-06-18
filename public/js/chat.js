@@ -157,14 +157,27 @@ async function displayFriendsList() {
             const conversations = await response.json();
             console.log('Loaded conversations:', conversations);
             
-            // Create a map of username to conversation data
-            const conversationMap = new Map();
-            conversations.forEach(conv => {
-                conversationMap.set(conv.username, conv);
+            // Create a map of username to friend data
+            const friendsMap = new Map();
+            friends.forEach(friend => {
+                friendsMap.set(friend.username, friend);
             });
             
-            // Display friends with conversation data
-            friends.forEach(friend => displayFriend(friend, conversationMap.get(friend.username)));
+            // Display conversations in order (most recent first)
+            conversations.forEach(conv => {
+                const friend = friendsMap.get(conv.username);
+                if (friend) {
+                    displayFriend(friend, conv);
+                }
+            });
+            
+            // Display remaining friends without recent conversations (at the bottom)
+            friends.forEach(friend => {
+                const hasConversation = conversations.some(conv => conv.username === friend.username);
+                if (!hasConversation) {
+                    displayFriend(friend);
+                }
+            });
         } else {
             // Fallback to displaying friends without conversation data
             friends.forEach(friend => displayFriend(friend));
