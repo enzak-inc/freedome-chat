@@ -349,12 +349,15 @@ freedome-chat/
 │       ├── Message.js        # Message model with chat history
 │       └── Group.js          # Group model with members
 └── public/
-    ├── index.html            # Complete Farsi UI with Edit Profile, About Us, and Invite Friend
+    ├── index.html            # Main app with Farsi UI, all chat features
+    ├── about.html            # Standalone About Us page (public access)
+    ├── register-guide.html   # Registration guide page (public access)
+    ├── profile.html          # User profile page for shareable links
     ├── css/
-    │   └── styles.css        # Enhanced styles with RTL/LTR message support and new views
+    │   └── styles.css        # Enhanced styles with RTL/LTR support, light/dark themes
     └── js/
         ├── auth.js           # Authentication handling
-        └── chat.js           # Chat functionality with text direction detection
+        └── chat.js           # Chat with text direction detection, friend search guide
 ```
 
 ## 🎯 Success Criteria
@@ -457,17 +460,75 @@ The project will be considered complete when:
    - Added proper RTL formatting for the message content
    - Included back button and app information
 
-7. ✅ **Invitation Mechanism - Phase 1**
-   - Added "دعوت از دوست" (Invite Friend) menu item
+7. ✅ **Invitation Mechanism - Phase 1 (Enhanced)**
+   - Added "دعوت از دوست" (Invite Friend) menu item at top of hamburger menu
    - Created invite page showing user's QR code and shareable link
    - Implemented copy link functionality with visual feedback
    - Added share via text option with formatted Persian invitation message
-   - QR code displays user profile data for easy friend adding
+   - Updated message to say "حتی با اینترنت ملی هم کار می‌کنه" (works even with Meli Internet)
+   - Changed QR header to "QR Code شما" for better clarity
+   - QR code sharing now shares actual image file (PNG) when supported
+   - Fallback to text sharing or download if image sharing not available
+
+8. ✅ **Enhanced Profile Page System**
+   - Created public profile pages accessible via shareable links
+   - Profile pages at `/@username` show user info and online status
+   - Added "Add Friend" functionality directly from profile page
+   - Automatic friend addition via `/api/add-friend` endpoint
+   - After adding friend, redirects to chat with auto-open conversation
+   - Prevents self-adding and duplicate friend requests
+
+9. ✅ **Registration and Authentication Improvements**
+   - Added live password validation with Farsi labels
+   - Password field always visible (removed toggle button that was overlapping)
+   - Real-time validation indicators:
+     - ✅ حداقل ۸ کاراکتر (minimum 8 characters)
+     - ✅ حرف بزرگ انگلیسی (uppercase letter)
+     - ✅ حرف کوچک انگلیسی (lowercase letter)
+     - ✅ عدد (number)
+     - ✅ کاراکتر ویژه (special character)
+   - Validation UI hidden until user starts typing
+
+10. ✅ **Conversation List Improvements**
+    - Fixed conversation sorting to show most recent messages first (like iMessage)
+    - Fixed message preview showing actual last message (not first)
+    - Enhanced SQL query with proper CTEs to get correct last message
+    - Refresh conversation list when returning from chat view
+    - Blue unread indicators work correctly even when in chat view
+    - Conversations automatically reorder when new messages arrive
+
+11. ✅ **New Standalone Pages**
+    - **About Us Page** (`/about.html`):
+      - Accessible from login page without authentication
+      - Contains developer's personal message in Farsi
+      - Professional design with back to login button
+    - **Registration Guide** (`/register-guide.html`):
+      - Comprehensive guide explaining username, display name, and password requirements
+      - Examples and security tips in Farsi
+      - "Start Registration" button goes to register form (not login)
+      - Opens in same tab (not new window)
+
+12. ✅ **Friend Search Guide Enhancement**
+    - Added comprehensive search guide to New Chat page
+    - Clear instructions with visual icons:
+      - 🔍 Minimum 3 characters required
+      - 👤 Search by username (examples: @ali, sara)
+      - 📝 Search by display name (examples: علی رضا, سارا محمدی)
+      - ⚡ Instant search after 3 characters
+    - Light mode support added for readability
+    - Professional UI with hover effects and code examples
+
+13. ✅ **BASE_URL Configuration**
+    - Added configurable BASE_URL in .env for shareable links
+    - Admins can set exact URL (e.g., http://192.168.1.100:3000)
+    - Fallback to auto-detection from request headers
+    - QR codes now contain full URLs with protocol
 
 ### 🚧 Next Steps (Phase 5)
-- Phase 2: Enhance profile pages with Add Friend button when viewing other users
-- Phase 3: Create smart connect links that automatically add friends
-- Testing and optimization for local network deployment
+- Phase 2: Enhance profile pages with smart friend connections
+- Phase 3: Implement offline message queuing
+- Performance optimization for large friend lists
+- Enhanced group chat features
 
 ### 💡 Key Technical Decisions Made
 1. **MySQL over SQLite:** Better performance, scalability, and concurrent connections
