@@ -131,8 +131,10 @@ function setupSocketListeners() {
             backToConversations();
         }
         
-        // Refresh both friends and groups list
-        loadFriends();
+        // Refresh both friends and groups list after a short delay to ensure UI is ready
+        setTimeout(() => {
+            loadFriends();
+        }, 100);
     });
 
     socket.on('group_message', (data) => {
@@ -167,8 +169,16 @@ function setupSocketListeners() {
 
 // Load friends and groups list
 let groups = [];
+let isLoadingFriends = false;
 
 async function loadFriends() {
+    // Prevent concurrent calls
+    if (isLoadingFriends) {
+        console.log('loadFriends already in progress, skipping...');
+        return;
+    }
+    
+    isLoadingFriends = true;
     try {
         console.log('Loading friends and groups from server for user:', currentUser.userId);
         
@@ -198,18 +208,33 @@ async function loadFriends() {
         friends = [];
         groups = [];
         displayFriendsList();
+    } finally {
+        isLoadingFriends = false;
     }
 }
 
 // Display friends and groups list
+let isDisplayingFriends = false;
+
 async function displayFriendsList() {
+    // Prevent concurrent calls
+    if (isDisplayingFriends) {
+        console.log('displayFriendsList already in progress, skipping...');
+        return;
+    }
+    
+    isDisplayingFriends = true;
     const friendsList = document.getElementById('friendsList');
-    if (!friendsList) return;
+    if (!friendsList) {
+        isDisplayingFriends = false;
+        return;
+    }
     
     friendsList.innerHTML = '';
     
     if (friends.length === 0 && groups.length === 0) {
         friendsList.innerHTML = '<p class="no-friends">هنوز مکالمه‌ای ندارید. برای شروع چت، دوستان اضافه کنید یا گروه جدید بسازید!</p>';
+        isDisplayingFriends = false;
         return;
     }
     
@@ -256,6 +281,8 @@ async function displayFriendsList() {
         // Fallback to displaying groups and friends without conversation data
         groups.forEach(group => displayGroup(group));
         friends.forEach(friend => displayFriend(friend));
+    } finally {
+        isDisplayingFriends = false;
     }
 }
 
