@@ -59,7 +59,7 @@
                     <button type="submit">ورود</button>
                 </form>
                 <p>حساب کاربری ندارید؟ <a href="#" onclick="showRegister()">ثبت‌نام</a></p>
-                <p><a href="#" onclick="showPublicAbout()">درباره ما</a></p>
+                <p><a href="/about.html">درباره ما</a></p>
                 <div id="loginError" class="error"></div>
             </div>
             
@@ -103,21 +103,6 @@
         </div>
     </div>
 
-    <!-- Public About Us (visible without login) -->
-    <div id="publicAboutContainer" class="auth-container hidden">
-        <div class="auth-box">
-            <h1>درباره ما</h1>
-            <div class="about-content-public">
-                <p style="text-align: right; direction: rtl; line-height: 1.8;">
-                    سلام به همه دوستان ایرانی سراسر جهان،<br><br>
-                    ما مجموعه‌ای از برنامه‌نویسان و طراحان هستیم که معتقدیم ارتباط آزاد حق هر انسانی است. این پیام‌رسان با هدف ایجاد بستری امن برای گفتگوی آزاد ایرانیان طراحی شده است.<br><br>
-                    از محدودیت‌ها نترسید و صدای خود را به گوش جهان برسانید.<br><br>
-                    زنده باد ایران آزاد 🌟
-                </p>
-            </div>
-            <button class="back-to-login-btn" onclick="showLogin()">بازگشت به ورود</button>
-        </div>
-    </div>
 
 
     <!-- Hamburger Menu Overlay -->
@@ -519,7 +504,6 @@
         function showLogin() {
             document.getElementById('loginForm').classList.remove('hidden');
             document.getElementById('registerForm').classList.add('hidden');
-            document.getElementById('publicAboutContainer').classList.add('hidden');
             clearError('loginError');
             clearError('registerError');
             // Reset login username to @
@@ -530,18 +514,11 @@
         function showRegister() {
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('registerForm').classList.remove('hidden');
-            document.getElementById('publicAboutContainer').classList.add('hidden');
             clearError('loginError');
             clearError('registerError');
             // Reset register username to @
             const regUsernameEl = document.getElementById('regUsername');
             if (regUsernameEl) regUsernameEl.value = '@';
-        }
-
-        function showPublicAbout() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('registerForm').classList.add('hidden');
-            document.getElementById('publicAboutContainer').classList.remove('hidden');
         }
 
         function showAuthInterface() {
