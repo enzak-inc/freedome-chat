@@ -191,7 +191,7 @@
                 
                 <!-- QR Code Section -->
                 <div class="invite-section">
-                    <h4 class="section-subtitle">کد QR شما</h4>
+                    <h4 class="section-subtitle">QR Code شما</h4>
                     <div class="qr-container">
                         <div id="inviteQRCode" class="qr-code-display"></div>
                         <p class="qr-description">دوستان شما می‌توانند این کد را اسکن کنند</p>
@@ -896,7 +896,7 @@
         function shareViaText() {
             if (!currentUser) return;
             
-            const shareText = `سلام! به اپلیکیشن Free Iran Chat بیا تا بتونیم باهم چت کنیم.\n\nلینک پروفایل من:\n${currentUser.shareableLink}\n\nاین یه پیام‌رسان محلی و امنه که بدون نیاز به اینترنت کار می‌کنه.`;
+            const shareText = `سلام! به اپلیکیشن Free Iran Chat بیا تا بتونیم باهم چت کنیم.\n\nلینک پروفایل من:\n${currentUser.shareableLink}\n\nاین یه پیام‌رسان محلی و امنه که حتی با اینترنت ملی هم کار می‌کنه.`;
             
             if (navigator.share) {
                 navigator.share({
@@ -913,8 +913,50 @@
             }
         }
 
-        function shareQRCode() {
-            alert('قابلیت اشتراک‌گذاری QR کد به زودی اضافه می‌شه!');
+        async function shareQRCode() {
+            if (!currentUser || !currentUser.qrCode) {
+                alert('QR کد در دسترس نیست');
+                return;
+            }
+            
+            try {
+                // Convert QR code data URL to blob
+                const response = await fetch(currentUser.qrCode);
+                const blob = await response.blob();
+                
+                // Create file for sharing
+                const file = new File([blob], 'qr-code.png', { type: 'image/png' });
+                
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    // Share QR code as image
+                    await navigator.share({
+                        title: 'QR Code پروفایل من',
+                        text: `QR Code پروفایل من در Free Iran Chat - ${currentUser.displayName}`,
+                        files: [file]
+                    });
+                } else if (navigator.share) {
+                    // Fallback to sharing text with link
+                    await navigator.share({
+                        title: 'QR Code پروفایل من',
+                        text: `QR Code پروفایل من در Free Iran Chat - ${currentUser.displayName}\nلینک: ${currentUser.shareableLink}`
+                    });
+                } else {
+                    // Download QR code as fallback
+                    const link = document.createElement('a');
+                    link.href = currentUser.qrCode;
+                    link.download = 'qr-code.png';
+                    link.click();
+                    alert('QR کد دانلود شد');
+                }
+            } catch (error) {
+                console.error('Error sharing QR code:', error);
+                // Fallback to downloading
+                const link = document.createElement('a');
+                link.href = currentUser.qrCode;
+                link.download = 'qr-code.png';
+                link.click();
+                alert('QR کد دانلود شد');
+            }
         }
 
         function showAbout() {
