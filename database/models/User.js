@@ -13,8 +13,8 @@ class User {
         // Hash password
         const passwordHash = await bcrypt.hash(password, 12);
         
-        // Generate shareable link
-        const shareableLink = `http://${baseUrl}${username}`;
+        // Generate shareable link  
+        const shareableLink = `${baseUrl}/${username}`;
         
         // Generate QR code with the shareable link directly
         const qrCode = await QRCode.toDataURL(shareableLink);

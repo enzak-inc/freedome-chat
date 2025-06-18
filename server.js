@@ -55,7 +55,7 @@ app.post('/api/register', async (req, res) => {
     }
     
     // Create user with database model
-    const baseUrl = req.headers.host || 'localhost:3000';
+    const baseUrl = process.env.BASE_URL || `http://${req.headers.host || 'localhost:3000'}`;
     const user = await User.create({
       username,
       displayName,
