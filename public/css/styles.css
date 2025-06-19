@@ -2721,7 +2721,7 @@ body.light-theme .message.group-message .message-sender {
     margin-bottom: 20px;
 }
 
-.group-avatar {
+.group-details .group-avatar {
     width: 80px;
     height: 80px;
     background: rgba(255, 255, 255, 0.1);
@@ -2932,7 +2932,7 @@ body.light-theme .member-username {
     color: rgba(0, 0, 0, 0.5);
 }
 
-body.light-theme .group-avatar,
+body.light-theme .group-details .group-avatar,
 body.light-theme .member-avatar {
     background: rgba(0, 0, 0, 0.1);
     color: #000;
