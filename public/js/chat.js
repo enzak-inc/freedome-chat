@@ -425,6 +425,16 @@ function selectGroupChat(groupId, groupName) {
     if (chatName) chatName.textContent = groupName;
     if (chatUsername) chatUsername.textContent = 'گروه';
     
+    // Show/hide action buttons for group chat
+    const groupInfoBtn = document.getElementById('groupInfoBtn');
+    const deleteChatBtn = document.getElementById('deleteChatBtn');
+    
+    if (groupInfoBtn) groupInfoBtn.classList.remove('hidden');
+    if (deleteChatBtn) deleteChatBtn.classList.remove('hidden');
+    
+    // Store current group info for later use
+    window.currentGroupInfo = { groupId, groupName };
+    
     // Enable message input
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
@@ -1073,4 +1083,219 @@ function checkForAutoOpenChat() {
             }
         }, 1000);
     }
+}
+
+// Group Info Functions
+function showGroupInfo() {
+    if (!window.currentGroupInfo) {
+        console.error('No current group info available');
+        return;
+    }
+    
+    const { groupId, groupName } = window.currentGroupInfo;
+    
+    // Switch to group info view
+    const chatView = document.getElementById('chatView');
+    const groupInfoView = document.getElementById('groupInfoView');
+    
+    chatView.classList.remove('active');
+    groupInfoView.classList.add('active');
+    
+    // Load group info
+    loadGroupInfo(groupId, groupName);
+}
+
+function backToChat() {
+    const chatView = document.getElementById('chatView');
+    const groupInfoView = document.getElementById('groupInfoView');
+    
+    groupInfoView.classList.remove('active');
+    chatView.classList.add('active');
+}
+
+async function loadGroupInfo(groupId, groupName) {
+    try {
+        // Update group info header
+        const groupInfoName = document.getElementById('groupInfoName');
+        if (groupInfoName) groupInfoName.textContent = groupName;
+        
+        // Load group members from the Group API endpoint
+        const response = await fetch(`/api/groups/members/${groupId}`);
+        if (response.ok) {
+            const members = await response.json();
+            displayGroupMembers(members, groupId);
+        } else {
+            console.error('Failed to load group members');
+            // Fallback: show basic info
+            const groupInfoMemberCount = document.getElementById('groupInfoMemberCount');
+            if (groupInfoMemberCount) groupInfoMemberCount.textContent = 'اعضای گروه';
+        }
+    } catch (error) {
+        console.error('Error loading group info:', error);
+    }
+}
+
+function displayGroupMembers(members, groupId) {
+    const membersList = document.getElementById('groupMembersList');
+    const memberCount = document.getElementById('groupInfoMemberCount');
+    
+    if (memberCount) {
+        memberCount.textContent = `${members.length} عضو`;
+    }
+    
+    if (!membersList) return;
+    
+    membersList.innerHTML = '';
+    
+    // Find the group info to determine admin
+    const currentGroup = groups.find(g => g.group_id === groupId);
+    const adminId = currentGroup ? currentGroup.admin_id : null;
+    
+    members.forEach(member => {
+        const memberEl = document.createElement('div');
+        memberEl.className = 'member-item';
+        
+        const isAdmin = member.user_id === adminId;
+        const isCurrentUser = member.user_id === currentUser.userId;
+        const displayName = member.display_name || member.username;
+        const avatarLetter = displayName.charAt(0).toUpperCase();
+        
+        memberEl.innerHTML = `
+            <div class="member-avatar">${avatarLetter}</div>
+            <div class="member-info">
+                <div class="member-name">${escapeHtml(displayName)}</div>
+                <div class="member-username">${escapeHtml(member.username)}</div>
+            </div>
+            <div class="member-status">
+                ${member.is_online ? '<div class="online-indicator"></div>' : ''}
+                ${isAdmin ? '<div class="member-role">ادمین</div>' : ''}
+                ${isCurrentUser ? '<div class="member-role">شما</div>' : ''}
+            </div>
+        `;
+        
+        membersList.appendChild(memberEl);
+    });
+}
+
+// Delete Chat Functions
+let pendingDeleteChat = null;
+
+function showDeleteChatConfirm() {
+    const modal = document.getElementById('deleteChatModal');
+    const modalTitle = document.getElementById('deleteModalTitle');
+    const modalText = document.getElementById('deleteModalText');
+    
+    if (!modal || !modalTitle || !modalText) return;
+    
+    // Determine if this is a group or individual chat
+    const isGroupChat = window.currentGroupInfo && selectedChat === window.currentGroupInfo.groupId;
+    
+    if (isGroupChat) {
+        modalTitle.textContent = 'حذف گروه';
+        modalText.textContent = `آیا از حذف گروه "${window.currentGroupInfo.groupName}" اطمینان دارید؟ این عمل قابل بازگشت نیست.`;
+        pendingDeleteChat = {
+            type: 'group',
+            id: window.currentGroupInfo.groupId,
+            name: window.currentGroupInfo.groupName
+        };
+    } else {
+        const chatName = document.getElementById('chatName');
+        const displayName = chatName ? chatName.textContent : 'این مکالمه';
+        
+        modalTitle.textContent = 'حذف مکالمه';
+        modalText.textContent = `آیا از حذف مکالمه با "${displayName}" اطمینان دارید؟ تمام پیام‌ها حذف خواهند شد.`;
+        pendingDeleteChat = {
+            type: 'individual',
+            id: selectedChat,
+            name: displayName
+        };
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function hideDeleteChatConfirm() {
+    const modal = document.getElementById('deleteChatModal');
+    if (modal) modal.classList.add('hidden');
+    pendingDeleteChat = null;
+}
+
+async function confirmDeleteChat() {
+    if (!pendingDeleteChat) return;
+    
+    try {
+        const { type, id, name } = pendingDeleteChat;
+        
+        if (type === 'group') {
+            // Delete group (leave group for now, full deletion can be admin-only)
+            const response = await fetch(`/api/groups/${id}/leave`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: currentUser.userId
+                })
+            });
+            
+            if (response.ok) {
+                showNotification(`از گروه "${name}" خارج شدید`);
+                // Remove from local groups array
+                groups = groups.filter(g => g.group_id !== id);
+                // Go back to conversations
+                backToConversations();
+                // Refresh conversations list
+                setTimeout(() => loadFriends(), 100);
+            } else {
+                throw new Error('Failed to leave group');
+            }
+        } else {
+            // Delete individual chat messages
+            const response = await fetch(`/api/messages/conversation/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: currentUser.userId
+                })
+            });
+            
+            if (response.ok) {
+                showNotification(`مکالمه با "${name}" حذف شد`);
+                // Clear local messages
+                delete messages[id];
+                // Go back to conversations
+                backToConversations();
+                // Refresh conversations list
+                setTimeout(() => loadFriends(), 100);
+            } else {
+                throw new Error('Failed to delete conversation');
+            }
+        }
+        
+        hideDeleteChatConfirm();
+    } catch (error) {
+        console.error('Error deleting chat:', error);
+        showNotification('خطا در حذف مکالمه');
+        hideDeleteChatConfirm();
+    }
+}
+
+function confirmLeaveGroup() {
+    // This is called from the group info page
+    if (!window.currentGroupInfo) return;
+    
+    const { groupId, groupName } = window.currentGroupInfo;
+    
+    // Set up the delete confirmation for group leaving
+    pendingDeleteChat = {
+        type: 'group',
+        id: groupId,
+        name: groupName
+    };
+    
+    // Go back to chat first, then show confirmation
+    backToChat();
+    setTimeout(() => showDeleteChatConfirm(), 300);
 }

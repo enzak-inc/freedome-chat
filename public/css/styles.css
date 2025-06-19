@@ -852,6 +852,35 @@ body.light-theme .unread-indicator {
     flex: 1;
 }
 
+.chat-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.action-btn.hidden {
+    display: none;
+}
+
 .chat-info h3 {
     font-size: 18px;
     font-weight: 600;
@@ -2642,4 +2671,307 @@ body.light-theme .group-conversation .conversation-details {
 
 body.light-theme .message.group-message .message-sender {
     color: #0066CC;
+}
+
+/* Group Info View */
+.group-info-view {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    transition: transform 0.3s ease;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+}
+
+.group-info-view.active {
+    transform: translateX(-100%);
+}
+
+.group-info-header {
+    height: 60px;
+    background: #000;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 12px;
+}
+
+.group-info-title {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.group-info-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.group-details {
+    text-align: center;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 20px;
+}
+
+.group-avatar {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    margin: 0 auto 16px auto;
+}
+
+.group-name {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.member-count {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    margin: 0;
+}
+
+.members-section {
+    margin-bottom: 30px;
+}
+
+.section-title {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+}
+
+.members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.member-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    gap: 12px;
+}
+
+.member-avatar {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #fff;
+    font-size: 14px;
+}
+
+.member-info {
+    flex: 1;
+}
+
+.member-name {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.member-username {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.member-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.member-role {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #fff;
+}
+
+.online-indicator {
+    width: 8px;
+    height: 8px;
+    background: #28A745;
+    border-radius: 50%;
+}
+
+.group-actions-section {
+    margin-top: 20px;
+}
+
+.danger-btn {
+    width: 100%;
+    padding: 16px;
+    background: #DC3545;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.danger-btn:hover {
+    background: #C82333;
+}
+
+/* Delete Chat Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #1a1a1a;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.modal-title {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+}
+
+.modal-text {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    line-height: 1.4;
+    margin: 0 0 24px 0;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.modal-actions .danger-btn,
+.modal-actions .cancel-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.modal-actions .cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.modal-actions .cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Light theme styles for new components */
+body.light-theme .group-info-view {
+    background: #fff;
+}
+
+body.light-theme .group-info-header {
+    background: #fff;
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .group-info-title,
+body.light-theme .group-name,
+body.light-theme .section-title,
+body.light-theme .member-name {
+    color: #000;
+}
+
+body.light-theme .member-count,
+body.light-theme .member-username {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+body.light-theme .group-avatar,
+body.light-theme .member-avatar {
+    background: rgba(0, 0, 0, 0.1);
+    color: #000;
+}
+
+body.light-theme .member-item {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .member-role {
+    background: rgba(0, 0, 0, 0.1);
+    color: #000;
+}
+
+body.light-theme .modal-content {
+    background: #fff;
+}
+
+body.light-theme .modal-title {
+    color: #000;
+}
+
+body.light-theme .modal-text {
+    color: rgba(0, 0, 0, 0.7);
+}
+
+body.light-theme .modal-actions .cancel-btn {
+    background: rgba(0, 0, 0, 0.1);
+    color: #000;
+}
+
+body.light-theme .modal-actions .cancel-btn:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+body.light-theme .action-btn {
+    color: #000;
+}
+
+body.light-theme .action-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
 }

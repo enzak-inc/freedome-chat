@@ -3,7 +3,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
-const { initializeDatabase } = require('./database/database');
+const { initializeDatabase, dbAsync } = require('./database/database');
 const User = require('./database/models/User');
 const Message = require('./database/models/Message');
 const Group = require('./database/models/Group');
@@ -180,6 +180,78 @@ app.get('/api/groups/user/:userId', async (req, res) => {
   } catch (error) {
     console.error('Groups fetch error:', error);
     res.status(500).json({ error: 'Failed to fetch groups' });
+  }
+});
+
+// Get group members
+app.get('/api/groups/members/:groupId', async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const members = await Group.getMembers(groupId);
+    res.json(members);
+  } catch (error) {
+    console.error('Group members fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch group members' });
+  }
+});
+
+// Leave group
+app.post('/api/groups/:groupId/leave', async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+    
+    // Check if user is a member
+    const isMember = await Group.isMember(groupId, userId);
+    if (!isMember) {
+      return res.status(400).json({ error: 'User is not a member of this group' });
+    }
+    
+    // Remove user from group
+    const success = await Group.removeMember(groupId, userId);
+    if (success) {
+      res.json({ success: true, message: 'Left group successfully' });
+    } else {
+      res.status(500).json({ error: 'Failed to leave group' });
+    }
+  } catch (error) {
+    console.error('Leave group error:', error);
+    res.status(500).json({ error: 'Failed to leave group' });
+  }
+});
+
+// Delete conversation messages
+app.delete('/api/messages/conversation/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+    
+    // Get the other user's ID
+    const otherUser = await User.findByUsername(username);
+    if (!otherUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Delete messages between the two users
+    // Note: This is a simple implementation - in production you might want more sophisticated deletion
+    const result = await dbAsync.run(`
+      DELETE FROM messages 
+      WHERE ((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))
+      AND group_id IS NULL
+    `, [userId, otherUser.user_id, otherUser.user_id, userId]);
+    
+    res.json({ success: true, message: 'Conversation deleted successfully', deletedCount: result.changes });
+  } catch (error) {
+    console.error('Delete conversation error:', error);
+    res.status(500).json({ error: 'Failed to delete conversation' });
   }
 });
 

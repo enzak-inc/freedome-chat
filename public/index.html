@@ -191,6 +191,14 @@
                     <h3 id="chatName"></h3>
                     <span id="chatUsername" class="chat-subtitle"></span>
                 </div>
+                <div class="chat-actions">
+                    <button id="groupInfoBtn" class="action-btn hidden" onclick="showGroupInfo()" title="اطلاعات گروه">
+                        👥
+                    </button>
+                    <button id="deleteChatBtn" class="action-btn" onclick="showDeleteChatConfirm()" title="حذف مکالمه">
+                        🗑️
+                    </button>
+                </div>
             </div>
             
             <!-- Messages Container -->
@@ -459,6 +467,52 @@
                 </div>
             </div>
         </div>
+
+        <!-- Group Info View -->
+        <div id="groupInfoView" class="group-info-view">
+            <!-- Group Info Header -->
+            <div class="group-info-header">
+                <button class="back-btn" onclick="backToChat()">‹</button>
+                <h2 class="group-info-title">اطلاعات گروه</h2>
+            </div>
+            
+            <!-- Group Info Content -->
+            <div class="group-info-content">
+                <!-- Group Details -->
+                <div class="group-details">
+                    <div class="group-avatar">👥</div>
+                    <h3 id="groupInfoName" class="group-name"></h3>
+                    <p id="groupInfoMemberCount" class="member-count"></p>
+                </div>
+                
+                <!-- Members List -->
+                <div class="members-section">
+                    <h4 class="section-title">اعضای گروه</h4>
+                    <div id="groupMembersList" class="members-list">
+                        <!-- Members will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Group Actions -->
+                <div class="group-actions-section">
+                    <button class="danger-btn" onclick="confirmLeaveGroup()">
+                        خروج از گروه
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Chat Confirmation Modal -->
+        <div id="deleteChatModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3 id="deleteModalTitle" class="modal-title">حذف مکالمه</h3>
+                <p id="deleteModalText" class="modal-text">آیا از حذف این مکالمه اطمینان دارید؟</p>
+                <div class="modal-actions">
+                    <button class="danger-btn" onclick="confirmDeleteChat()">حذف</button>
+                    <button class="cancel-btn" onclick="hideDeleteChatConfirm()">لغو</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="/js/auth.js"></script>
@@ -717,6 +771,7 @@
             const aboutView = document.getElementById('aboutView');
             const inviteFriendView = document.getElementById('inviteFriendView');
             const createGroupView = document.getElementById('createGroupView');
+            const groupInfoView = document.getElementById('groupInfoView');
             
             conversationsView.classList.add('active');
             chatView.classList.remove('active');
@@ -725,6 +780,7 @@
             aboutView.classList.remove('active');
             inviteFriendView.classList.remove('active');
             createGroupView.classList.remove('active');
+            if (groupInfoView) groupInfoView.classList.remove('active');
             
             // Refresh the conversations list to pull latest changes
             if (typeof loadFriends === 'function') {
@@ -1320,6 +1376,13 @@
             
             if (chatName) chatName.textContent = displayName;
             if (chatUsername) chatUsername.textContent = username;
+            
+            // Show/hide action buttons for individual chat
+            const groupInfoBtn = document.getElementById('groupInfoBtn');
+            const deleteChatBtn = document.getElementById('deleteChatBtn');
+            
+            if (groupInfoBtn) groupInfoBtn.classList.add('hidden');
+            if (deleteChatBtn) deleteChatBtn.classList.remove('hidden');
             
             // Enable message input
             const messageInput = document.getElementById('messageInput');
